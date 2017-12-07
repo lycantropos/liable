@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  liable:
+    build:
+      context: .
+      args:
+        - PYTHON3_VERSION=${PYTHON3_VERSION}
+    image: lycantropos/liable:0.0.0
+    volumes:
+      - .:/opt/liable/
+    entrypoint: python3
+    command: setup.py test
+    extra_hosts:
+      - "dockerhost:$DOCKERHOST"  # for debugging
