@@ -4,7 +4,9 @@ FROM python:${PYTHON3_VERSION}
 
 WORKDIR /opt/liable
 
-COPY liable.py liable.py
+ENV LANG=en_US.UTF-8
+
+COPY scripts/ scripts/
 COPY tests/ tests/
 COPY README.rst .
 COPY setup.py .
