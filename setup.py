@@ -23,7 +23,7 @@ tests_require = [
 
 setup(name='liable',
       packages=find_packages(exclude=('tests',)),
-      scripts=[os.path.join('scripts', 'liable.py')],
+      scripts=[os.path.join('scripts', 'liable')],
       version=scripts.__version__,
       description=scripts.__doc__,
       long_description=open('README.rst').read(),
