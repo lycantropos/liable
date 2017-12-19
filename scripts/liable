@@ -9,14 +9,18 @@ import click
 from pathspec import (PathSpec,
                       patterns)
 
-from liable.detectors import is_python_module
-from liable.utils import find_files
+from liable.utils import (parse_module_name,
+                          find_files)
 from liable.validators import validate_paths
 
 
 @click.group()
 def main() -> None:
     return
+
+
+def is_python_module(path: str) -> bool:
+    return parse_module_name(path) is not None
 
 
 @main.command(name='modules')
