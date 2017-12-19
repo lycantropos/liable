@@ -42,3 +42,13 @@ def join_strings(strings: Iterable[str],
 def wrap_with_quotes(string: str) -> Any:
     quote_character = '"'
     return quote_character + string + quote_character
+
+
+def to_name(object_: Any) -> str:
+    try:
+        return object_.__qualname__
+    except AttributeError:
+        try:
+            return object_.__name__
+        except AttributeError:
+            return str(object_)
