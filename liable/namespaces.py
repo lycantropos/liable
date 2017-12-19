@@ -3,13 +3,13 @@ from itertools import chain
 from types import ModuleType
 from typing import (Any,
                     Iterator,
-                    Mapping,
+                    Dict,
                     Tuple)
 
 from . import modules
 from .utils import to_name
 
-NamespaceType = Mapping[str, Any]
+NamespaceType = Dict[str, Any]
 
 
 def search(object_: Any,
