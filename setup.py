@@ -13,6 +13,7 @@ setup_requires = [
 install_requires = [
     'click>=6.7',
     'pathspec>=0.5.5',
+    'autopep8>=1.3.3',
 ]
 tests_require = [
     'pydevd>=1.1.1',  # debugging

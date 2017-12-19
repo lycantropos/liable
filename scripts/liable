@@ -1,17 +1,41 @@
 #!/usr/bin/env python3
+import collections
+import importlib.util
+import inspect
 import operator
 import os
+import sys
 from functools import partial
 from itertools import (filterfalse,
                        chain)
+from types import (ModuleType,
+                   FunctionType)
+from typing import (Any,
+                    Optional,
+                    Type,
+                    Callable,
+                    Iterable,
+                    Iterator,
+                    Mapping,
+                    Tuple,
+                    List)
 
+import autopep8
 import click
 from pathspec import (PathSpec,
                       patterns)
 
+from liable import (modules,
+                    annotations)
+from liable.arboterum import (ImportType,
+                              split_imports,
+                              is_import_statement,
+                              to_tree)
 from liable.utils import (parse_module_name,
-                          find_files)
-from liable.validators import validate_paths
+                          find_files,
+                          join_strings)
+from liable.validators import (validate_paths,
+                               validate_modules)
 
 
 @click.group()
@@ -65,6 +89,190 @@ def search_modules(recursive: bool,
 
     for module_path in modules_paths:
         click.echo(module_path)
+
+
+TEST_CASE_PARAMETER_TEMPLATE = '{parameter}: {annotation}'
+TEST_CASE_DEFINITION_TEMPLATE = 'def test_{function}({parameters}) -> None:\n'
+RESULT_NAME = 'result'
+FUNCTION_ARGUMENTS_TEMPLATES = {
+    inspect._POSITIONAL_ONLY: '{argument}',
+    inspect._POSITIONAL_OR_KEYWORD: '{argument}',
+    inspect._VAR_POSITIONAL: '*{argument}',
+    inspect._KEYWORD_ONLY: '{parameter}={argument}',
+    inspect._VAR_KEYWORD: '**{argument}'
+}
+FUNCTION_CALL_TEMPLATE = '{result} = {function}({arguments})\n\n'
+RETURN_TYPE_CHECK_TEMPLATE = 'isinstance({result}, {return_type})'
+NONE_RETURN_TYPE_CHECK_TEMPLATE = '{result} is None'
+ASSERTION_TEMPLATE = 'assert {statement}\n'
+
+
+@main.command(name='tests')
+@click.option('--spaces-count', '-s',
+              type=click.IntRange(0),
+              default=4,
+              help='Number of spaces used for indentation.')
+@click.argument('modules_paths',
+                nargs=-1)
+def generate_tests(spaces_count: int,
+                   modules_paths: List[str]) -> None:
+    """Generates test cases templates for modules."""
+    if not modules_paths:
+        err_msg = 'No paths specified.'
+        raise click.BadParameter(err_msg)
+
+    modules_paths = list(map(os.path.abspath, modules_paths))
+
+    try:
+        validate_paths(modules_paths)
+    except OSError as err:
+        raise click.BadParameter(err) from err
+
+    built_ins = modules.to_dict(__builtins__)
+
+    for module_path in modules_paths:
+        with open(module_path) as module_file:
+            tree = to_tree(module_file.read(),
+                           file_name=module_path)
+
+        imports = filter(is_import_statement, tree.body)
+        dependent_objects = dict(load_dependent_objects(imports))
+        dependent_objects.update(built_ins)
+
+        module_name = parse_module_name(module_path)
+        loader = importlib._bootstrap_external.SourceFileLoader(module_name,
+                                                                module_path)
+        spec = importlib.util.spec_from_loader(name=module_name,
+                                               loader=loader)
+        module = importlib.util.module_from_spec(spec)
+        modules.load(module)
+
+        module_dict = modules.to_dict(module)
+
+        module_dict.update(built_ins)
+        if collections not in module_dict.values():
+            module_dict[collections.__name__] = collections
+        if Any not in module_dict.values():
+            module_dict['Any'] = Any
+        if Optional not in module_dict.values():
+            module_dict['Optional'] = Optional
+
+        module_objects = {name: content
+                          for name, content in module_dict.items()
+                          if name not in dependent_objects}
+        module_functions = {name: content
+                            for name, content in module_objects.items()
+                            if inspect.isfunction(content)}
+
+        def to_name(annotation: Type) -> str:
+            annotation = annotations.normalize(annotation)
+            return annotation.to_string(module_dict)
+
+        tab = ' ' * spaces_count
+        test_case_generator = partial(generate_test_case,
+                                      tab=tab,
+                                      to_name_converter=to_name)
+        test_cases = map(test_case_generator, module_functions.values())
+        for test_case in test_cases:
+            click.echo(test_case)
+
+
+def generate_test_case(function: FunctionType,
+                       *,
+                       tab: str,
+                       to_name_converter: Callable[[Type], str]
+                       ) -> str:
+    signature = inspect.signature(function)
+    function_parameters = signature.parameters.values()
+    test_parameters_str = join_strings(
+            TEST_CASE_PARAMETER_TEMPLATE.format(
+                    parameter=parameter.name,
+                    annotation=to_name_converter(parameter.annotation)
+            )
+            for parameter in function_parameters)
+    function_arguments_str = join_strings(
+            FUNCTION_ARGUMENTS_TEMPLATES[parameter.kind].format(
+                    parameter=parameter.name,
+                    argument=parameter.name)
+            for parameter in function_parameters)
+    return_annotation = signature.return_annotation
+    return_annotation_bases = to_bases(return_annotation)
+
+    def to_statement(annotation_base: Type) -> str:
+        if annotation_base is None:
+            return NONE_RETURN_TYPE_CHECK_TEMPLATE
+        else:
+            return RETURN_TYPE_CHECK_TEMPLATE
+
+    statements = sorted(set(map(to_statement, return_annotation_bases)))
+    if len(statements) == 1:
+        statement, = statements
+        assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
+    else:
+        statement = '(' + '\nor\n'.join(statements) + ')'
+        assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
+
+    return_type = None
+    defined_return_annotation_bases = list(filter(None,
+                                                  return_annotation_bases))
+    if defined_return_annotation_bases:
+        if len(defined_return_annotation_bases) == 1:
+            return_annotation_base, = defined_return_annotation_bases
+            return_type = to_name_converter(return_annotation_base)
+        else:
+            return_types = list(map(to_name_converter,
+                                    defined_return_annotation_bases))
+            return_types_str = ', '.join(return_types)
+            return_type = ('({return_types})'
+                           .format(return_types=return_types_str))
+
+    test_case_template = (TEST_CASE_DEFINITION_TEMPLATE
+                          + tab + FUNCTION_CALL_TEMPLATE
+                          + tab + assertion_template)
+    result = test_case_template.format(function=function.__name__,
+                                       parameters=test_parameters_str,
+                                       result=RESULT_NAME,
+                                       arguments=function_arguments_str,
+                                       return_type=return_type)
+    return autopep8.fix_code(result,
+                             options={'select': ['E1']})
+
+
+def load_dependent_objects(imports: Iterable[ImportType]
+                           ) -> Iterator[Tuple[str, Any]]:
+    dependent_objects_names = dict(chain.from_iterable(map(split_imports,
+                                                           imports)))
+    dependencies_names = dependent_objects_names.values()
+    validate_modules(dependencies_names)
+    dependencies = dict(modules.skeletons(dependencies_names))
+    for module_name, module in dependencies.items():
+        loaded_module = sys.modules.get(module_name, None)
+        if loaded_module is None:
+            modules.load(module)
+        else:
+            dependencies[module_name] = loaded_module
+    yield from juxtapose_objects(dependent_objects_names,
+                                 dependencies)
+
+
+def juxtapose_objects(objects_by_modules_names: Mapping[str, str],
+                      modules_by_names: Mapping[str, ModuleType]
+                      ) -> Iterator[Tuple[str, Any]]:
+    for object_name, module_name in objects_by_modules_names.items():
+        module = modules_by_names[module_name]
+        try:
+            object_ = getattr(module, object_name)
+        except AttributeError as err:
+            if not module_name.endswith(object_name):
+                raise err
+            object_ = module
+        yield object_name, object_
+
+
+def to_bases(annotation: Type) -> Tuple[Type, ...]:
+    if not isinstance(annotation, annotations.Annotation):
+        annotation = annotations.normalize(annotation)
+    return annotation.bases
 
 
 if __name__ == '__main__':
