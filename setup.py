@@ -1,6 +1,7 @@
 import os
 
-from setuptools import setup
+from setuptools import (setup,
+                        find_packages)
 
 import scripts
 
@@ -21,6 +22,7 @@ tests_require = [
 ]
 
 setup(name='liable',
+      packages=find_packages(exclude=('tests',)),
       scripts=[os.path.join('scripts', 'liable.py')],
       version=scripts.__version__,
       description=scripts.__doc__,
