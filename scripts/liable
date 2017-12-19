@@ -108,7 +108,7 @@ ASSERTION_TEMPLATE = 'assert {statement}\n'
 
 @main.command(name='tests')
 @click.option('--spaces-count', '-s',
-              type=click.IntRange(0),
+              type=click.IntRange(1),
               default=4,
               help='Number of spaces used for indentation.')
 @click.argument('modules_paths',
