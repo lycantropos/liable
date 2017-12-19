@@ -49,11 +49,14 @@ def module_accessible(name: str,
                       *,
                       sep: str = '.') -> bool:
     sub_modules_names = name.split(sep)
-    package = ''
-    for sub_module_name in sub_modules_names[:-1]:
-        spec = importlib.util.find_spec(sub_module_name, package)
+    module_path = ''
+    for sub_module_name in sub_modules_names:
+        if module_path:
+            sub_module_name = sep + sub_module_name
+        spec = importlib.util.find_spec(name=sub_module_name,
+                                        package=module_path)
         if spec is None:
             return False
-        package += sub_module_name
+        module_path += sub_module_name
 
     return True
