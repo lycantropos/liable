@@ -178,8 +178,7 @@ def generate_tests(spaces_count: int,
 def generate_test_case(function: FunctionType,
                        *,
                        tab: str,
-                       to_name_converter: Callable[[Type], str]
-                       ) -> str:
+                       to_name_converter: Callable[[Type], str]) -> str:
     signature = inspect.signature(function)
     function_parameters = signature.parameters.values()
     test_parameters_str = join_strings(
