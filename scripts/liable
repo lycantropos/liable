@@ -171,8 +171,10 @@ def generate_tests(spaces_count: int,
                                       tab=tab,
                                       to_name_converter=to_name)
         test_cases = map(test_case_generator, module_functions.values())
-        for test_case in test_cases:
-            click.echo(test_case)
+        module_tests = autopep8.fix_code(''.join(test_cases),
+                                         options={'aggressive': True,
+                                                  'max_line_length': 79})
+        click.echo(module_tests)
 
 
 def generate_test_case(function: FunctionType,
@@ -226,20 +228,18 @@ def generate_test_case(function: FunctionType,
     test_case_template = (TEST_CASE_DEFINITION_TEMPLATE
                           + tab + FUNCTION_CALL_TEMPLATE
                           + tab + assertion_template)
-    result = test_case_template.format(function=function.__name__,
-                                       parameters=test_parameters_str,
-                                       result=RESULT_NAME,
-                                       arguments=function_arguments_str,
-                                       return_type=return_type)
-    return autopep8.fix_code(result,
-                             options={'select': ['E1']})
+    return test_case_template.format(function=function.__name__,
+                                     parameters=test_parameters_str,
+                                     result=RESULT_NAME,
+                                     arguments=function_arguments_str,
+                                     return_type=return_type)
 
 
 def load_dependent_objects(imports: Iterable[ImportType]
                            ) -> Iterator[Tuple[str, Any]]:
     dependent_objects_names = dict(chain.from_iterable(map(split_imports,
                                                            imports)))
-    dependencies_names = dependent_objects_names.values()
+    dependencies_names = set(dependent_objects_names.values())
     validate_modules(dependencies_names)
     dependencies = dict(modules.skeletons(dependencies_names))
     for module_name, module in dependencies.items():
