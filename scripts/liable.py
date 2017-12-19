@@ -20,7 +20,7 @@ def main() -> None:
     return
 
 
-@main.command()
+@main.command(name='modules')
 @click.option('--recursive', '-r',
               is_flag=True,
               help='Recursively walks through given directory.')
@@ -30,9 +30,9 @@ def main() -> None:
                    'more at https://git-scm.com/docs/gitignore).')
 @click.argument('paths',
                 nargs=-1)
-def modules(recursive: bool,
-            ignore_patterns_path: str,
-            paths: str) -> None:
+def search_modules(recursive: bool,
+                   ignore_patterns_path: str,
+                   paths: str) -> None:
     """Searches Python modules in paths."""
     if not paths:
         err_msg = 'No paths specified.'
