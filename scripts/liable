@@ -130,9 +130,13 @@ def generate_tests(spaces_count: int,
 
     built_ins = modules.to_dict(__builtins__)
     for module_path in modules_paths:
-        test_cases = generate_module_test_cases(module_path,
-                                                built_ins=built_ins,
-                                                spaces_count=spaces_count)
+        try:
+            test_cases = generate_module_test_cases(module_path,
+                                                    built_ins=built_ins,
+                                                    spaces_count=spaces_count)
+        except ImportError as err:
+            raise click.BadParameter(err) from err
+
         click.echo(test_cases)
 
 
