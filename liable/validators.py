@@ -4,7 +4,8 @@ from itertools import filterfalse
 from typing import Iterable
 
 from .utils import (join_strings,
-                    wrap_with_quotes)
+                    wrap_with_quotes,
+                    is_python_module)
 
 
 def validate_paths(paths: Iterable[str]) -> None:
@@ -19,6 +20,15 @@ def validate_paths(paths: Iterable[str]) -> None:
                '{paths}.'
                .format(paths=non_existent_paths_str))
     raise FileNotFoundError(err_msg)
+
+
+def validate_modules_paths(paths: Iterable[str]) -> None:
+    invalid_paths = list(filterfalse(is_python_module, paths))
+
+    if invalid_paths:
+        err_msg = ('Next paths are not valid Python modules:\n'
+                   '{paths}'.format(paths=join_strings(invalid_paths)))
+        raise OSError(err_msg)
 
 
 def validate_modules(names: Iterable[str]) -> None:
