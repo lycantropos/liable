@@ -31,9 +31,9 @@ from liable.arboterum import (ImportType,
                               split_imports,
                               is_import_statement,
                               to_tree)
-from liable.utils import (parse_module_name,
-                          find_files,
-                          join_strings)
+from liable.utils import (find_files,
+                          join_strings,
+                          is_python_module)
 from liable.validators import (validate_paths,
                                validate_modules_paths,
                                validate_modules)
@@ -42,10 +42,6 @@ from liable.validators import (validate_paths,
 @click.group()
 def main() -> None:
     return
-
-
-def is_python_module(path: str) -> bool:
-    return parse_module_name(path) is not None
 
 
 @main.command(name='modules')
