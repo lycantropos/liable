@@ -1,4 +1,3 @@
-import inspect
 import os
 from functools import partial
 from typing import (Any,
@@ -7,8 +6,6 @@ from typing import (Any,
 
 from .arboterum import to_tree
 
-def parse_module_name(path: str) -> str:
-    return inspect.getmodulename(path) or os.path.basename(path)
 STRINGS_SEPARATOR = ',\n'
 
 
