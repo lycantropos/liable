@@ -116,7 +116,7 @@ ASSERTION_TEMPLATE = 'assert {statement}\n'
                 nargs=-1)
 def generate_tests(spaces_count: int,
                    modules_paths: List[str]) -> None:
-    """Generates test cases templates for modules."""
+    """Generates test cases skeletons for modules."""
     if not modules_paths:
         err_msg = 'No paths specified.'
         raise click.BadParameter(err_msg)
