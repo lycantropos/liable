@@ -56,8 +56,5 @@ def is_module_name(name: str) -> bool:
         return loader is not None
 
 
-IMPORT_TYPES = (ast.Import, ast.ImportFrom)
-
-
 def is_import_statement(node: ast.AST) -> bool:
-    return isinstance(node, IMPORT_TYPES)
+    return isinstance(node, (ast.Import, ast.ImportFrom))
