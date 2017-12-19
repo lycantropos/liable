@@ -35,6 +35,7 @@ from liable.utils import (parse_module_name,
                           find_files,
                           join_strings)
 from liable.validators import (validate_paths,
+                               validate_modules_paths,
                                validate_modules)
 
 
@@ -125,6 +126,7 @@ def generate_tests(spaces_count: int,
 
     try:
         validate_paths(modules_paths)
+        validate_modules_paths(modules_paths)
     except OSError as err:
         raise click.BadParameter(err) from err
 
