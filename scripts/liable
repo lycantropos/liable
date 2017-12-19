@@ -311,7 +311,8 @@ def load_dependent_objects(imports: Iterable[ImportType]
                                                            imports)))
     dependencies_names = set(dependent_objects_names.values())
     validate_modules(dependencies_names)
-    dependencies = dict(modules.skeletons(dependencies_names))
+    dependencies_skeletons = map(modules.name_to_skeleton, dependencies_names)
+    dependencies = dict(zip(dependencies_names, dependencies_skeletons))
     for module_name, module in dependencies.items():
         loaded_module = sys.modules.get(module_name, None)
         if loaded_module is None:

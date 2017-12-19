@@ -3,9 +3,7 @@ from types import ModuleType
 
 from typing import (Any,
                     Iterable,
-                    Iterator,
-                    Dict,
-                    Tuple)
+                    Dict)
 
 SEPARATOR = '.'
 
@@ -15,11 +13,9 @@ MODULE_UTILITY_FIELDS = ['__name__', '__doc__', '__package__',
                          '__builtins__', '__all__']
 
 
-def skeletons(names: Iterable[str]) -> Iterator[Tuple[str, ModuleType]]:
-    for module_name in names:
-        spec = importlib.util.find_spec(module_name)
-        module = importlib.util.module_from_spec(spec)
-        yield module_name, module
+def name_to_skeleton(module_name: str) -> ModuleType:
+    spec = importlib.util.find_spec(module_name)
+    return importlib.util.module_from_spec(spec)
 
 
 def load(module: ModuleType) -> None:
