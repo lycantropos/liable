@@ -3,9 +3,9 @@ import os
 from itertools import filterfalse
 from typing import Iterable
 
-from .utils import (join_strings,
-                    wrap_with_quotes,
-                    is_python_module)
+from .strings import (join_strings,
+                      wrap_with_quotes)
+from .utils import is_python_module
 
 
 def validate_paths(paths: Iterable[str]) -> None:

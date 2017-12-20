@@ -33,10 +33,10 @@ from liable.arboterum import (ImportType,
                               split_imports,
                               is_import_statement,
                               to_tree)
-from liable.utils import (join_strings,
-                          join_with_wrapping,
-                          is_python_module)
 from liable.files import find_files
+from liable.strings import (join_strings,
+                            join_with_wrapping)
+from liable.utils import is_python_module
 from liable.validators import (validate_paths,
                                validate_modules_paths,
                                validate_modules)
