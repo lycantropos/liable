@@ -1,21 +1,22 @@
 import collections
 from typing import (TypingMeta,
                     GenericMeta,
-                    Any)
+                    Any,
+                    Type)
 
 from .base import Annotation
 
 
-def is_callable(object_: Any) -> bool:
-    return isinstance(object_, collections.Callable)
+def is_callable(object_: Type) -> bool:
+    return issubclass(object_, collections.Callable)
 
 
-def is_iterable(object_: Any) -> bool:
-    return isinstance(object_, collections.Iterable)
+def is_iterable(object_: Type) -> bool:
+    return issubclass(object_, collections.Iterable)
 
 
-def is_mapping(object_: Any) -> bool:
-    return isinstance(object_, collections.Mapping)
+def is_mapping(object_: Type) -> bool:
+    return issubclass(object_, collections.Mapping)
 
 
 def is_none_annotation(annotation: Annotation) -> bool:
