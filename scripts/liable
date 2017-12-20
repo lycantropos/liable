@@ -28,7 +28,7 @@ from pathspec import (PathSpec,
 from liable import (modulation,
                     namespaces,
                     annotator,
-                    paths,
+                    catalog,
                     files)
 from liable.arboretum import (ImportType,
                               split_imports,
@@ -196,7 +196,7 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
     imports = filter(is_import_statement, tree.body)
 
     module_directory_path = os.path.dirname(module_path)
-    module_directory_relative_path = paths.to_relative(module_directory_path)
+    module_directory_relative_path = catalog.to_relative(module_directory_path)
 
     def relative_import_to_absolute(statement: ImportType) -> ImportType:
         if isinstance(statement, ast.Import):
@@ -216,7 +216,7 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
             module_path = os.path.join(module_directory_relative_path,
                                        jumps, module)
             module_path = os.path.normpath(module_path)
-            module = paths.to_import(module_path)
+            module = catalog.to_import(module_path)
         return module
 
     def is_import_relative(statement: ast.ImportFrom) -> bool:

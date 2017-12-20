@@ -5,7 +5,7 @@ from typing import (Any,
                     Iterable,
                     Dict)
 
-from . import paths
+from . import catalog
 
 SEPARATOR = '.'
 
@@ -21,7 +21,7 @@ def from_name(name: str) -> ModuleType:
 
 
 def from_path(path: str) -> ModuleType:
-    module_name = paths.to_import(paths.to_relative(path))
+    module_name = catalog.to_import(catalog.to_relative(path))
     loader = importlib._bootstrap_external.SourceFileLoader(module_name,
                                                             path=path)
     spec = importlib.util.spec_from_loader(module_name,
