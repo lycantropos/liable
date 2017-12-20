@@ -38,12 +38,12 @@ def to_annotation(annotation: Any) -> Annotation:
         annotation.__args__ = tuple(map(none_type_to_none,
                                         annotation.__args__))
         arguments = annotation.__args__
-        arguments_annotations = list(map(to_annotation,
-                                         arguments))
+        arguments_annotations = list(map(to_annotation, arguments))
         if None in arguments:
             arguments_annotations = list(filterfalse(is_none_annotation,
                                                      arguments_annotations))
-            return annotations.Optional(arguments=arguments_annotations)
+            return annotations.Optional(origin=annotation,
+                                        arguments=arguments_annotations)
         return annotations.Union(origin=annotation,
                                  arguments=arguments_annotations)
 

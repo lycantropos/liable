@@ -88,20 +88,29 @@ class Union(Annotation):
 
 class Optional(Annotation):
     def __init__(self,
+                 origin: TypingMeta,
                  arguments: Collection[Annotation]):
+        super().__init__(origin)
+        self.arguments = arguments
+
+    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+        origin = self.origin
+
+        if origin in namespace.values():
+            return namespaces.search(origin,
+                                     namespace=namespace)
+
+        arguments = self.arguments
         # since "Flat is better than nested."
         #   Union[...types..., None]
         # looks better than
         #   Optional[Union[...types...]]
-        super().__init__(OptionalType if len(arguments) == 1 else UnionType)
-        self.arguments = arguments
-
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
-        origin_name = namespaces.search(self.origin,
+        origin_cls = OptionalType if len(arguments) == 1 else UnionType
+        origin_name = namespaces.search(origin_cls,
                                         namespace=namespace)
         arguments_strings = [annotation.to_string(namespace)
-                             for annotation in self.arguments]
-        if len(arguments_strings) > 1:
+                             for annotation in arguments]
+        if len(arguments) > 1:
             arguments_strings.append(str(None))
         arguments_str = ', '.join(arguments_strings)
         return '{origin}[{arguments}]'.format(origin=origin_name,
