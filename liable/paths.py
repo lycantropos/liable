@@ -7,9 +7,9 @@ from typing import (Iterable,
 from . import modules
 
 
-def to_relative_path(path: str,
-                     *,
-                     system_paths: Iterable[str] = sys.path) -> str:
+def to_relative(path: str,
+                *,
+                system_paths: Iterable[str] = sys.path) -> str:
     root_path = max((system_path
                      for system_path in system_paths
                      if path.startswith(system_path)),
@@ -17,7 +17,7 @@ def to_relative_path(path: str,
     return os.path.normpath(os.path.relpath(path, root_path))
 
 
-def to_import_path(path: str) -> str:
+def to_import(path: str) -> str:
     path_parts = path.split(os.sep)
     path_parts = normalize_path_parts(path_parts)
     return modules.SEPARATOR.join(path_parts)

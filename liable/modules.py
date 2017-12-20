@@ -5,7 +5,7 @@ from typing import (Any,
                     Iterable,
                     Dict)
 
-from .paths import to_relative_path, to_import_path
+from . import paths
 
 SEPARATOR = '.'
 
@@ -21,7 +21,7 @@ def name_to_skeleton(module_name: str) -> ModuleType:
 
 
 def path_to_skeleton(module_path: str) -> ModuleType:
-    module_name = to_import_path(to_relative_path(module_path))
+    module_name = paths.to_import(paths.to_relative(module_path))
     loader = importlib._bootstrap_external.SourceFileLoader(module_name,
                                                             path=module_path)
     spec = importlib.util.spec_from_loader(module_name,

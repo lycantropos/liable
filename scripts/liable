@@ -27,7 +27,8 @@ from pathspec import (PathSpec,
 
 from liable import (modules,
                     namespaces,
-                    annotations)
+                    annotations,
+                    paths)
 from liable.arboterum import (ImportType,
                               split_imports,
                               is_import_statement,
@@ -35,8 +36,6 @@ from liable.arboterum import (ImportType,
 from liable.utils import (find_files,
                           join_strings,
                           is_python_module)
-from liable.paths import (to_relative_path,
-                          to_import_path)
 from liable.validators import (validate_paths,
                                validate_modules_paths,
                                validate_modules)
@@ -190,7 +189,7 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
     imports = filter(is_import_statement, tree.body)
 
     module_directory_path = os.path.dirname(module_path)
-    module_directory_relative_path = to_relative_path(module_directory_path)
+    module_directory_relative_path = paths.to_relative(module_directory_path)
 
     def relative_import_to_absolute(statement: ImportType) -> ImportType:
         if isinstance(statement, ast.Import):
@@ -210,7 +209,7 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
             module_path = os.path.join(module_directory_relative_path,
                                        jumps, module)
             module_path = os.path.normpath(module_path)
-            module = to_import_path(module_path)
+            module = paths.to_import(module_path)
         return module
 
     def is_import_relative(statement: ast.ImportFrom) -> bool:
