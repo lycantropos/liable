@@ -10,10 +10,16 @@ from . import modulation
 def to_relative(path: str,
                 *,
                 system_paths: Iterable[str] = sys.path) -> str:
-    root_path = max((system_path
-                     for system_path in system_paths
-                     if path.startswith(system_path)),
-                    key=len)
+    try:
+        root_path = max((system_path
+                         for system_path in system_paths
+                         if path.startswith(system_path)),
+                        key=len)
+    except TypeError as err:
+        err_msg = ('Invalid module path: "{path}". '
+                   'No root path found in `Python` system paths.'
+                   .format(path=path))
+        raise ModuleNotFoundError(err_msg) from err
     return os.path.normpath(os.path.relpath(path, root_path))
 
 
