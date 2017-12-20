@@ -28,12 +28,12 @@ from pathspec import (PathSpec,
 from liable import (modules,
                     namespaces,
                     annotator,
-                    paths)
+                    paths,
+                    files)
 from liable.arboterum import (ImportType,
                               split_imports,
                               is_import_statement,
                               to_tree)
-from liable.files import find_files
 from liable.strings import (join_strings,
                             join_with_wrapping)
 from liable.utils import is_python_module
@@ -72,9 +72,9 @@ def search_modules(recursive: bool,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    files_paths = chain.from_iterable(map(partial(find_files,
-                                                  recursive=recursive),
-                                          paths))
+    files_seeker = partial(files.find,
+                           recursive=recursive)
+    files_paths = chain.from_iterable(map(files_seeker, paths))
     modules_paths = filter(is_python_module, files_paths)
 
     if ignore_patterns_path:
