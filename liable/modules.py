@@ -33,10 +33,10 @@ def load(module: ModuleType) -> None:
     module.__loader__.exec_module(module)
 
 
-def to_dict(module: ModuleType,
-            *,
-            utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
-            ) -> Dict[str, Any]:
+def to_namespace(module: ModuleType,
+                 *,
+                 utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
+                 ) -> Dict[str, Any]:
     result = vars(module)
     for field in utility_fields:
         result.pop(field, None)

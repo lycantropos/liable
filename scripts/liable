@@ -128,7 +128,7 @@ def generate_tests(spaces_count: int,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    built_ins = modules.to_dict(__builtins__)
+    built_ins = modules.to_namespace(__builtins__)
     for module_path in modules_paths:
         try:
             test_cases = generate_module_test_cases(module_path,
@@ -147,21 +147,21 @@ def generate_module_test_cases(module_path: str,
     module = modules.path_to_skeleton(module_path)
     modules.load(module)
 
-    module_dict = modules.to_dict(module)
-    module_dict.update(built_ins)
+    namespace = modules.to_namespace(module)
+    namespace.update(built_ins)
 
-    if collections not in module_dict.values():
-        module_dict[collections.__name__] = collections
-    if Any not in module_dict.values():
-        module_dict['Any'] = Any
-    if Optional not in module_dict.values():
-        module_dict['Optional'] = Optional
+    if collections not in namespace.values():
+        namespace[collections.__name__] = collections
+    if Any not in namespace.values():
+        namespace['Any'] = Any
+    if Optional not in namespace.values():
+        namespace['Optional'] = Optional
 
     dependent_objects = dependent_objects_namespace(module_path)
     dependent_objects.update(built_ins)
 
     module_objects = {name: content
-                      for name, content in module_dict.items()
+                      for name, content in namespace.items()
                       if name not in dependent_objects}
     module_functions = {name: content
                         for name, content in module_objects.items()
@@ -169,7 +169,7 @@ def generate_module_test_cases(module_path: str,
 
     def to_name(annotation: Type) -> str:
         annotation = annotations.normalize(annotation)
-        return annotation.to_string(module_dict)
+        return annotation.to_string(namespace)
 
     tab = ' ' * spaces_count
     test_case_generator = partial(generate_test_case,
