@@ -1,4 +1,5 @@
-from abc import abstractmethod
+from abc import (ABC,
+                 abstractmethod)
 from typing import (TypingMeta,
                     Union,
                     Type,
@@ -7,7 +8,7 @@ from typing import (TypingMeta,
 from liable import namespaces
 
 
-class Annotation:
+class Annotation(ABC):
     def __init__(self, origin: Union[Type, TypingMeta]):
         self.origin = origin
 
