@@ -37,7 +37,7 @@ def to_namespace(module: ModuleType,
                  *,
                  utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
                  ) -> Dict[str, Any]:
-    result = vars(module)
+    result = dict(vars(module))
     for field in utility_fields:
         result.pop(field, None)
     return result
