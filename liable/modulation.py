@@ -15,15 +15,15 @@ MODULE_UTILITY_FIELDS = ['__name__', '__doc__', '__package__',
                          '__builtins__', '__all__']
 
 
-def name_to_skeleton(module_name: str) -> ModuleType:
-    spec = importlib.util.find_spec(module_name)
+def name_to_skeleton(name: str) -> ModuleType:
+    spec = importlib.util.find_spec(name)
     return importlib.util.module_from_spec(spec)
 
 
-def path_to_skeleton(module_path: str) -> ModuleType:
-    module_name = paths.to_import(paths.to_relative(module_path))
+def path_to_skeleton(path: str) -> ModuleType:
+    module_name = paths.to_import(paths.to_relative(path))
     loader = importlib._bootstrap_external.SourceFileLoader(module_name,
-                                                            path=module_path)
+                                                            path=path)
     spec = importlib.util.spec_from_loader(module_name,
                                            loader=loader)
     return importlib.util.module_from_spec(spec)

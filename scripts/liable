@@ -25,7 +25,7 @@ import click
 from pathspec import (PathSpec,
                       patterns)
 
-from liable import (modules,
+from liable import (modulation,
                     namespaces,
                     annotator,
                     paths,
@@ -131,7 +131,7 @@ def generate_tests(spaces_count: int,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    built_ins = modules.to_namespace(__builtins__)
+    built_ins = modulation.to_namespace(__builtins__)
     test_cases_generator = partial(generate_module_tests_code,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count,
@@ -151,10 +151,10 @@ def generate_module_tests_code(module_path: str,
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int,
                                coder: CoderType) -> str:
-    module = modules.path_to_skeleton(module_path)
-    modules.load(module)
+    module = modulation.path_to_skeleton(module_path)
+    modulation.load(module)
 
-    namespace = modules.to_namespace(module)
+    namespace = modulation.to_namespace(module)
     namespace.update(built_ins)
 
     if collections not in namespace.values():
@@ -287,12 +287,12 @@ def load_dependent_objects(imports: Iterable[ImportType]
                                                            imports)))
     dependencies_names = set(dependent_objects_names.values())
     validate_modules(dependencies_names)
-    dependencies_skeletons = map(modules.name_to_skeleton, dependencies_names)
+    dependencies_skeletons = map(modulation.name_to_skeleton, dependencies_names)
     dependencies = dict(zip(dependencies_names, dependencies_skeletons))
     for module_name, module in dependencies.items():
         loaded_module = sys.modules.get(module_name, None)
         if loaded_module is None:
-            modules.load(module)
+            modulation.load(module)
         else:
             dependencies[module_name] = loaded_module
     yield from juxtapose_objects(dependent_objects_names,

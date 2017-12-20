@@ -6,7 +6,7 @@ from typing import (Any,
                     Dict,
                     Tuple)
 
-from . import modules
+from . import modulation
 from .utils import to_name
 
 NamespaceType = Dict[str, Any]
@@ -37,7 +37,7 @@ def search_objects(object_: Any,
                    module_name: str = '') -> str:
     for name, content in namespace.items():
         if content is object_:
-            yield modules.SEPARATOR.join(filter(None, [module_name, name]))
+            yield modulation.SEPARATOR.join(filter(None, [module_name, name]))
 
 
 def namespace_modules(namespace: NamespaceType

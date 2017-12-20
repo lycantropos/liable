@@ -7,14 +7,14 @@ from typing import (Union,
                     Iterator,
                     Tuple)
 
-from . import modules
+from . import modulation
 
 ImportType = Union[ast.Import, ast.ImportFrom]
 
 
 def split_imports(statement: ImportType,
                   *,
-                  sep: str = modules.SEPARATOR) -> Iterator[Tuple[str, str]]:
+                  sep: str = modulation.SEPARATOR) -> Iterator[Tuple[str, str]]:
     name = operator.attrgetter('name')
     aliases = statement.names
     objects_names = list(map(name, aliases))
