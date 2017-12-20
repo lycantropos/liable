@@ -1,9 +1,11 @@
+import importlib._bootstrap_external
 import importlib.util
 from types import ModuleType
-
 from typing import (Any,
                     Iterable,
                     Dict)
+
+from .paths import to_relative_path, to_import_path
 
 SEPARATOR = '.'
 
@@ -15,6 +17,15 @@ MODULE_UTILITY_FIELDS = ['__name__', '__doc__', '__package__',
 
 def name_to_skeleton(module_name: str) -> ModuleType:
     spec = importlib.util.find_spec(module_name)
+    return importlib.util.module_from_spec(spec)
+
+
+def path_to_skeleton(module_path: str) -> ModuleType:
+    module_name = to_import_path(to_relative_path(module_path))
+    loader = importlib._bootstrap_external.SourceFileLoader(module_name,
+                                                            path=module_path)
+    spec = importlib.util.spec_from_loader(module_name,
+                                           loader=loader)
     return importlib.util.module_from_spec(spec)
 
 

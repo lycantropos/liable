@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import ast
 import collections
-import importlib.util
 import inspect
 import operator
 import os
@@ -146,12 +145,7 @@ def generate_module_test_cases(module_path: str,
                                *,
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int) -> str:
-    module_name = to_import_path(to_relative_path(module_path))
-    loader = importlib._bootstrap_external.SourceFileLoader(module_name,
-                                                            module_path)
-    spec = importlib.util.spec_from_loader(name=module_name,
-                                           loader=loader)
-    module = importlib.util.module_from_spec(spec)
+    module = modules.path_to_skeleton(module_path)
     modules.load(module)
 
     module_dict = modules.to_dict(module)
