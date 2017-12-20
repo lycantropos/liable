@@ -35,6 +35,7 @@ from liable.arboterum import (ImportType,
                               to_tree)
 from liable.utils import (find_files,
                           join_strings,
+                          join_with_wrapping,
                           is_python_module)
 from liable.validators import (validate_paths,
                                validate_modules_paths,
@@ -252,12 +253,9 @@ def generate_test_case(function: FunctionType,
             return RETURN_TYPE_CHECK_TEMPLATE
 
     statements = sorted(set(map(to_statement, return_annotation_bases)))
-    if len(statements) == 1:
-        statement, = statements
-        assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
-    else:
-        statement = '(' + '\nor\n'.join(statements) + ')'
-        assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
+    statement = join_with_wrapping(statements,
+                                   sep='\nor\n')
+    assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
 
     return_type = None
     defined_return_annotation_bases = list(filter(None,
