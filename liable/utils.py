@@ -1,7 +1,7 @@
 import os
 from typing import Any
 
-from .arboterum import to_tree
+from .arboretum import to_tree
 
 
 def to_name(object_: Any) -> str:

@@ -30,7 +30,7 @@ from liable import (modules,
                     annotator,
                     paths,
                     files)
-from liable.arboterum import (ImportType,
+from liable.arboretum import (ImportType,
                               split_imports,
                               is_import_statement,
                               to_tree)
