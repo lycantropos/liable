@@ -151,7 +151,7 @@ def generate_module_tests_code(module_path: str,
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int,
                                coder: CoderType) -> str:
-    module = modulation.path_to_skeleton(module_path)
+    module = modulation.from_path(module_path)
     modulation.load(module)
 
     namespace = modulation.to_namespace(module)
@@ -287,7 +287,7 @@ def load_dependent_objects(imports: Iterable[ImportType]
                                                            imports)))
     dependencies_names = set(dependent_objects_names.values())
     validate_modules(dependencies_names)
-    dependencies_skeletons = map(modulation.name_to_skeleton, dependencies_names)
+    dependencies_skeletons = map(modulation.from_name, dependencies_names)
     dependencies = dict(zip(dependencies_names, dependencies_skeletons))
     for module_name, module in dependencies.items():
         loaded_module = sys.modules.get(module_name, None)
