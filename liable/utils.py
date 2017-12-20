@@ -16,7 +16,7 @@ def join_strings(strings: Iterable[str],
 
 def join_with_wrapping(strings: Sequence[str],
                        *,
-                       sep: str) -> str:
+                       sep: str = STRINGS_SEPARATOR) -> str:
     if len(strings) == 1:
         string, = strings
         return string
