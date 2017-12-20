@@ -90,6 +90,8 @@ def search_modules(recursive: bool,
         click.echo(module_path)
 
 
+CoderType = Callable[[FunctionType, str, Callable[[Type], str]], str]
+
 TEST_CASE_PARAMETER_TEMPLATE = '{parameter}: {annotation}'
 TEST_CASE_DEFINITION_TEMPLATE = 'def test_{function}({parameters}) -> None:\n'
 RESULT_NAME = 'result'
@@ -129,21 +131,25 @@ def generate_tests(spaces_count: int,
         raise click.BadParameter(err) from err
 
     built_ins = modules.to_namespace(__builtins__)
+    test_cases_generator = partial(generate_module_tests_code,
+                                   built_ins=built_ins,
+                                   spaces_count=spaces_count,
+                                   coder=generate_test_case)
     for module_path in modules_paths:
         try:
-            test_cases = generate_module_test_cases(module_path,
-                                                    built_ins=built_ins,
-                                                    spaces_count=spaces_count)
+            test_cases = test_cases_generator(module_path)
         except ImportError as err:
             raise click.BadParameter(err) from err
 
         click.echo(test_cases)
 
 
-def generate_module_test_cases(module_path: str,
+def generate_module_tests_code(module_path: str,
                                *,
+
                                built_ins: namespaces.NamespaceType,
-                               spaces_count: int) -> str:
+                               spaces_count: int,
+                               coder: CoderType) -> str:
     module = modules.path_to_skeleton(module_path)
     modules.load(module)
 
@@ -172,11 +178,11 @@ def generate_module_test_cases(module_path: str,
         return annotation.to_string(namespace)
 
     tab = ' ' * spaces_count
-    test_case_generator = partial(generate_test_case,
-                                  tab=tab,
-                                  to_name_converter=to_name)
-    test_cases = map(test_case_generator, module_functions.values())
-    return autopep8.fix_code(''.join(test_cases),
+    coder = partial(coder,
+                    tab=tab,
+                    to_name_converter=to_name)
+    code_blocks = map(coder, module_functions.values())
+    return autopep8.fix_code(''.join(code_blocks),
                              options={'aggressive': True,
                                       'max_line_length': 79})
 
