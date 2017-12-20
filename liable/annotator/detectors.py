@@ -3,7 +3,7 @@ from typing import (TypingMeta,
                     GenericMeta,
                     Any)
 
-from liable.annotations import Annotation
+from .base import Annotation
 
 
 def is_callable(object_: Any) -> bool:
