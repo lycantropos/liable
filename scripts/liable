@@ -167,12 +167,12 @@ def generate_module_tests_code(module_path: str,
     dependent_objects = dependent_objects_namespace(module_path)
     dependent_objects.update(built_ins)
 
-    module_objects = {name: content
+    module_objects = [content
                       for name, content in namespace.items()
-                      if name not in dependent_objects}
-    module_functions = {name: content
-                        for name, content in module_objects.items()
-                        if inspect.isfunction(content)}
+                      if name not in dependent_objects]
+    module_functions = [object_
+                        for object_ in module_objects
+                        if inspect.isfunction(object_)]
 
     def to_name(annotation: Type) -> str:
         annotation = annotations.normalize(annotation)
@@ -182,7 +182,7 @@ def generate_module_tests_code(module_path: str,
     coder = partial(coder,
                     tab=tab,
                     to_name_converter=to_name)
-    code_blocks = map(coder, module_functions.values())
+    code_blocks = map(coder, module_functions)
     return autopep8.fix_code(''.join(code_blocks),
                              options={'aggressive': True,
                                       'max_line_length': 79})
