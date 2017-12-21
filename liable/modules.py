@@ -50,7 +50,7 @@ def load(module: ModuleType,
 
 def search(object_path: catalog.ObjectPath,
            *,
-           modules: ModuleType) -> Any:
+           modules: Dict[str, ModuleType]) -> Any:
     module = modules[object_path.module]
     if object_path.object is None:
         object_ = module
