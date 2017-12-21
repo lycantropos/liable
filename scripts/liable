@@ -177,42 +177,6 @@ def generate_module_tests_code(module_path: str,
                                       'max_line_length': 79})
 
 
-def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
-    with open(module_path) as source_file:
-        source = source_file.read()
-    tree = arboretum.from_source(source,
-                                 file_name=module_path)
-    imports = filter(arboretum.is_import_statement, tree.body)
-
-    module_directory_path = os.path.dirname(module_path)
-    module_directory_relative_path = catalog.to_relative(module_directory_path)
-
-    def relative_import_to_absolute(statement: arboretum.ImportType
-                                    ) -> arboretum.ImportType:
-        if isinstance(statement, ast.Import):
-            return statement
-        else:
-            module = to_package(statement)
-            return ast.ImportFrom(module=module,
-                                  level=0,
-                                  names=statement.names,
-                                  lineno=statement.lineno,
-                                  col_offset=statement.col_offset)
-
-    def to_package(statement: ast.ImportFrom) -> str:
-        module = statement.module or ''
-        if arboretum.is_import_relative(statement):
-            jumps = (os.pardir + os.sep) * (statement.level - 1)
-            module_path = os.path.join(module_directory_relative_path,
-                                       jumps, module)
-            module_path = os.path.normpath(module_path)
-            module = catalog.to_import(module_path)
-        return module
-
-    imports = map(relative_import_to_absolute, imports)
-    return dict(load_dependent_objects(imports))
-
-
 def is_object_from_module(object_: Any,
                           module: ModuleType) -> bool:
     return inspect.getmodule(object_) is module
@@ -276,30 +240,6 @@ def generate_test_case(function: FunctionType,
                                      result=RESULT_NAME,
                                      arguments=function_arguments_str,
                                      return_type=return_type)
-
-
-def load_dependent_objects(imports: Iterable[arboretum.ImportType]
-                           ) -> Iterator[Tuple[str, Any]]:
-    objects_paths = list(chain.from_iterable(map(arboretum.split_import,
-                                                 imports)))
-    dependencies_names = dict(objects_paths).keys()
-    validate_modules(dependencies_names)
-    dependencies = dict(zip(dependencies_names,
-                            map(modules.from_name, dependencies_names)))
-    yield from juxtapose_objects(objects_paths,
-                                 dependencies)
-
-
-def juxtapose_objects(objects_paths: Iterable[catalog.ObjectPath],
-                      modules: Mapping[str, ModuleType]
-                      ) -> Iterator[Tuple[str, Any]]:
-    for object_path in objects_paths:
-        module = modules[object_path.module]
-        if object_path.object is None:
-            yield object_path, module
-        else:
-            object_ = getattr(module, object_path.object)
-            yield object_path, object_
 
 
 def to_bases(annotation: Type) -> Tuple[Type, ...]:
