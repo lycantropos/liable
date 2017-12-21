@@ -132,7 +132,7 @@ def generate_tests(spaces_count: int,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    built_ins = namespaces.to_namespace(__builtins__)
+    built_ins = namespaces.from_module(__builtins__)
     test_cases_generator = partial(generate_module_tests_code,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count,
@@ -155,7 +155,7 @@ def generate_module_tests_code(module_path: str,
     module = modulation.from_path(module_path)
     modulation.load(module)
 
-    namespace = namespaces.to_namespace(module)
+    namespace = namespaces.from_module(module)
     namespace.update(built_ins)
 
     if collections not in namespace.values():

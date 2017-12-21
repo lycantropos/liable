@@ -18,10 +18,10 @@ MODULE_UTILITY_FIELDS = ['__name__', '__doc__', '__package__',
                          '__builtins__', '__all__']
 
 
-def to_namespace(module: ModuleType,
-                 *,
-                 utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
-                 ) -> NamespaceType:
+def from_module(module: ModuleType,
+                *,
+                utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
+                ) -> NamespaceType:
     result = dict(vars(module))
     for field in utility_fields:
         result.pop(field, None)
