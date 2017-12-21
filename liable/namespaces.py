@@ -37,7 +37,7 @@ def search(object_: Any,
     else:
         object_paths = chain.from_iterable(
                 search_objects(object_,
-                               namespace=vars(module),
+                               namespace=from_module(module),
                                module_name=module_name)
                 for module_name, module in namespace_modules(namespace))
     try:
