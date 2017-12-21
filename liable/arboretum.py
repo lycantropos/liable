@@ -14,7 +14,8 @@ ImportType = Union[ast.Import, ast.ImportFrom]
 
 def split_imports(statement: ImportType,
                   *,
-                  sep: str = modulation.SEPARATOR) -> Iterator[Tuple[str, str]]:
+                  sep: str = modulation.SEPARATOR
+                  ) -> Iterator[Tuple[str, str]]:
     name = operator.attrgetter('name')
     aliases = statement.names
     objects_names = list(map(name, aliases))
