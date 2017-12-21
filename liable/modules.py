@@ -2,7 +2,8 @@ import importlib._bootstrap_external
 import importlib.util
 import sys
 from types import ModuleType
-from typing import Dict
+from typing import (Any,
+                    Dict)
 
 from . import catalog
 
@@ -45,3 +46,14 @@ def load(module: ModuleType,
         module.__loader__.exec_module(module)
         return module
     return cached_module
+
+
+def search(object_path: catalog.ObjectPath,
+           *,
+           modules: ModuleType) -> Any:
+    module = modules[object_path.module]
+    if object_path.object is None:
+        object_ = module
+    else:
+        object_ = getattr(module, object_path.object)
+    return object_
