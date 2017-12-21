@@ -20,6 +20,7 @@ from typing import (Any,
                     List)
 
 import autopep8
+import builtins
 import click
 from pathspec import (PathSpec,
                       patterns)
@@ -127,7 +128,7 @@ def generate_tests(spaces_count: int,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    built_ins = namespaces.from_module(__builtins__)
+    built_ins = namespaces.from_module(builtins)
     test_cases_generator = partial(generate_module_tests_code,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count,
