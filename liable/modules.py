@@ -1,5 +1,6 @@
 import importlib._bootstrap_external
 import importlib.util
+import inspect
 import sys
 from types import ModuleType
 from typing import (Any,
@@ -61,3 +62,8 @@ def search(object_path: catalog.ObjectPath,
 
 def is_built_in(module: ModuleType) -> bool:
     return not hasattr(module, '__file__')
+
+
+def is_object_from_module(object_: Any,
+                          module: ModuleType) -> bool:
+    return inspect.getmodule(object_) is module

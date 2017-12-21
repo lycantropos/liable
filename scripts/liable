@@ -161,7 +161,7 @@ def generate_module_tests_code(module_path: str,
 
     module_objects = [content
                       for content in namespace.values()
-                      if is_object_from_module(content, module)]
+                      if modules.is_object_from_module(content, module)]
     module_functions = [object_
                         for object_ in module_objects
                         if inspect.isfunction(object_)]
@@ -175,11 +175,6 @@ def generate_module_tests_code(module_path: str,
     return autopep8.fix_code(''.join(code_blocks),
                              options={'aggressive': True,
                                       'max_line_length': 79})
-
-
-def is_object_from_module(object_: Any,
-                          module: ModuleType) -> bool:
-    return inspect.getmodule(object_) is module
 
 
 def generate_test_case(function: FunctionType,
