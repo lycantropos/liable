@@ -161,7 +161,8 @@ def generate_module_tests_code(module_path: str,
 
     module_objects = [content
                       for content in namespace.values()
-                      if modules.is_object_from_module(content, module)]
+                      if modules.is_object_from_module(content,
+                                                       module=module)]
     module_functions = [object_
                         for object_ in module_objects
                         if inspect.isfunction(object_)]

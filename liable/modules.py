@@ -65,5 +65,6 @@ def is_built_in(module: ModuleType) -> bool:
 
 
 def is_object_from_module(object_: Any,
+                          *,
                           module: ModuleType) -> bool:
     return inspect.getmodule(object_) is module
