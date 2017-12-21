@@ -87,7 +87,7 @@ def search_modules(recursive: bool,
         click.echo(module_path)
 
 
-CoderType = Callable[[FunctionType, str, Callable[[Type], str]], str]
+CoderType = Callable[[FunctionType, str, namespaces.NamespaceType], str]
 
 TEST_CASE_PARAMETER_TEMPLATE = '{parameter}: {annotation}'
 TEST_CASE_DEFINITION_TEMPLATE = 'def test_{function}({parameters}) -> None:\n'
@@ -166,14 +166,11 @@ def generate_module_tests_code(module_path: str,
                         for object_ in module_objects
                         if inspect.isfunction(object_)]
 
-    def to_name(annotation: Type) -> str:
-        annotation = annotator.normalize(annotation)
-        return annotation.to_string(namespace)
 
     tab = ' ' * spaces_count
     coder = partial(coder,
                     tab=tab,
-                    to_name_converter=to_name)
+                    namespace=namespace)
     code_blocks = map(coder, module_functions)
     return autopep8.fix_code(''.join(code_blocks),
                              options={'aggressive': True,
@@ -224,13 +221,18 @@ def is_object_from_module(object_: Any,
 def generate_test_case(function: FunctionType,
                        *,
                        tab: str,
-                       to_name_converter: Callable[[Type], str]) -> str:
+                       namespace: namespaces.NamespaceType) -> str:
     signature = inspect.signature(function)
     function_parameters = signature.parameters.values()
+
+    def to_name(annotation: Type) -> str:
+        annotation = annotator.normalize(annotation)
+        return annotation.to_string(namespace)
+
     test_parameters_str = join_strings(
             TEST_CASE_PARAMETER_TEMPLATE.format(
                     parameter=parameter.name,
-                    annotation=to_name_converter(parameter.annotation)
+                    annotation=to_name(parameter.annotation)
             )
             for parameter in function_parameters)
     function_arguments_str = join_strings(
@@ -258,9 +260,9 @@ def generate_test_case(function: FunctionType,
     if defined_return_annotation_bases:
         if len(defined_return_annotation_bases) == 1:
             return_annotation_base, = defined_return_annotation_bases
-            return_type = to_name_converter(return_annotation_base)
+            return_type = to_name(return_annotation_base)
         else:
-            return_types = list(map(to_name_converter,
+            return_types = list(map(to_name,
                                     defined_return_annotation_bases))
             return_types_str = ', '.join(return_types)
             return_type = ('({return_types})'
