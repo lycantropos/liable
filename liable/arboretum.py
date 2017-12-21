@@ -2,12 +2,13 @@ import ast
 import operator
 import os
 import pkgutil
-from itertools import chain
+from itertools import (chain,
+                       repeat,
+                       starmap)
 from typing import (Union,
                     Callable,
                     Iterable,
-                    Iterator,
-                    Tuple)
+                    Iterator)
 
 from . import catalog
 
@@ -16,34 +17,30 @@ ImportType = Union[ast.Import, ast.ImportFrom]
 
 def split_import(statement: ImportType,
                  *,
-                 sep: str = catalog.SEPARATOR) -> Iterator[Tuple[str, str]]:
+                 sep: str = catalog.SEPARATOR
+                 ) -> Iterator[catalog.ObjectPath]:
     name = operator.attrgetter('name')
-    aliases = statement.names
-    objects_names = list(map(name, aliases))
+    names = list(map(name, statement.names))
     if isinstance(statement, ast.Import):
-        def parse_sup_modules(object_name: str) -> Iterable:
-            *result, _ = object_name.split(sep)
+        # all names are modules names
+        objects_names = repeat(None)
+
+        def sup_modules(module_name: str) -> Iterable[str]:
+            *result, _ = module_name.split(sep)
             yield from result
 
-        sup_modules = chain.from_iterable(map(parse_sup_modules,
-                                              objects_names))
-        objects_names = list(chain(objects_names, sup_modules))
-        yield from zip(objects_names, objects_names)
+        sup_modules = chain.from_iterable(map(sup_modules,
+                                              names))
+        modules_names = chain(names, sup_modules)
     else:
         if is_import_relative(statement):
             err_msg = ('Import statement should be absolute, '
                        'relative found.')
             raise ValueError(err_msg)
 
-        package_name = statement.module
-
-        def module_name(object_name: str) -> str:
-            candidate = package_name + sep + object_name
-            if is_module_name(candidate):
-                return candidate
-            return package_name
-
-        yield from zip(objects_names, map(module_name, objects_names))
+        objects_names = names
+        modules_names = repeat(statement.module)
+    yield from starmap(catalog.ObjectPath, zip(modules_names, objects_names))
 
 
 def import_absolutizer(module_path: str

@@ -187,7 +187,7 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
     with open(module_path) as source_file:
         source = source_file.read()
     tree = arboretum.from_source(source,
-                       file_name=module_path)
+                                 file_name=module_path)
     imports = filter(arboretum.is_import_statement, tree.body)
 
     module_directory_path = os.path.dirname(module_path)
@@ -276,29 +276,26 @@ def generate_test_case(function: FunctionType,
 
 def load_dependent_objects(imports: Iterable[arboretum.ImportType]
                            ) -> Iterator[Tuple[str, Any]]:
-    objects_dependencies_names = chain.from_iterable(map(arboretum.split_import,
-                                                         imports))
-    dependencies_names_by_objects_names = dict(objects_dependencies_names)
-    dependencies_names = set(dependencies_names_by_objects_names.values())
+    objects_paths = list(chain.from_iterable(map(arboretum.split_import,
+                                                 imports)))
+    dependencies_names = dict(objects_paths).keys()
     validate_modules(dependencies_names)
     dependencies = dict(zip(dependencies_names,
                             map(modules.from_name, dependencies_names)))
-    yield from juxtapose_objects(dependencies_names_by_objects_names,
+    yield from juxtapose_objects(objects_paths,
                                  dependencies)
 
 
-def juxtapose_objects(modules_names_by_objects_names: Mapping[str, str],
-                      modules_by_names: Mapping[str, ModuleType]
+def juxtapose_objects(objects_paths: Iterable[catalog.ObjectPath],
+                      modules: Mapping[str, ModuleType]
                       ) -> Iterator[Tuple[str, Any]]:
-    for object_name, module_name in modules_names_by_objects_names.items():
-        module = modules_by_names[module_name]
-        try:
-            object_ = getattr(module, object_name)
-        except AttributeError as err:
-            if not module_name.endswith(object_name):
-                raise err
-            object_ = module
-        yield object_name, object_
+    for object_path in objects_paths:
+        module = modules[object_path.module]
+        if object_path.object is None:
+            yield object_path, module
+        else:
+            object_ = getattr(module, object_path.object)
+            yield object_path, object_
 
 
 def to_bases(annotation: Type) -> Tuple[Type, ...]:
