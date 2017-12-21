@@ -276,8 +276,8 @@ def generate_test_case(function: FunctionType,
 
 def load_dependent_objects(imports: Iterable[arboretum.ImportType]
                            ) -> Iterator[Tuple[str, Any]]:
-    objects_dependencies_names = chain.from_iterable(map(arboretum.split_imports,
-                                                    imports))
+    objects_dependencies_names = chain.from_iterable(map(arboretum.split_import,
+                                                         imports))
     dependencies_names_by_objects_names = dict(objects_dependencies_names)
     dependencies_names = set(dependencies_names_by_objects_names.values())
     validate_modules(dependencies_names)

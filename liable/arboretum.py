@@ -14,9 +14,9 @@ from . import catalog
 ImportType = Union[ast.Import, ast.ImportFrom]
 
 
-def split_imports(statement: ImportType,
-                  *,
-                  sep: str = catalog.SEPARATOR) -> Iterator[Tuple[str, str]]:
+def split_import(statement: ImportType,
+                 *,
+                 sep: str = catalog.SEPARATOR) -> Iterator[Tuple[str, str]]:
     name = operator.attrgetter('name')
     aliases = statement.names
     objects_names = list(map(name, aliases))
