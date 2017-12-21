@@ -18,8 +18,8 @@ class Raw(Annotation):
         super().__init__(origin)
 
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
-        return namespaces.search(self.origin,
-                                 namespace=namespace)
+        return namespaces.search_name(self.origin,
+                                      namespace=namespace)
 
     @property
     def bases(self) -> Tuple[Type]:
@@ -32,8 +32,8 @@ class PlainAnnotation(Annotation):
         super().__init__(origin)
 
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
-        return namespaces.search(self.origin,
-                                 namespace=namespace)
+        return namespaces.search_name(self.origin,
+                                      namespace=namespace)
 
     @property
     def bases(self) -> Tuple[Type]:
@@ -45,8 +45,8 @@ class Any(Annotation):
         super().__init__(AnyType)
 
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
-        return namespaces.search(self.origin,
-                                 namespace=namespace)
+        return namespaces.search_name(self.origin,
+                                      namespace=namespace)
 
     @property
     def bases(self) -> Tuple[object]:
@@ -64,14 +64,14 @@ class Union(Annotation):
         origin = self.origin
 
         if origin in namespace.values():
-            return namespaces.search(origin,
-                                     namespace=namespace)
+            return namespaces.search_name(origin,
+                                          namespace=namespace)
 
         result = str(origin)
 
         base = origin.__origin__
-        base_name = namespaces.search(base,
-                                      namespace=namespace)
+        base_name = namespaces.search_name(base,
+                                           namespace=namespace)
         result = result.replace(str(base),
                                 base_name)
         for annotation in self.arguments:
@@ -97,8 +97,8 @@ class Optional(Annotation):
         origin = self.origin
 
         if origin in namespace.values():
-            return namespaces.search(origin,
-                                     namespace=namespace)
+            return namespaces.search_name(origin,
+                                          namespace=namespace)
 
         arguments = self.arguments
         # since "Flat is better than nested."
@@ -106,8 +106,8 @@ class Optional(Annotation):
         # looks better than
         #   Optional[Union[...types...]]
         origin_cls = OptionalType if len(arguments) == 1 else UnionType
-        origin_name = namespaces.search(origin_cls,
-                                        namespace=namespace)
+        origin_name = namespaces.search_name(origin_cls,
+                                             namespace=namespace)
         arguments_strings = [annotation.to_string(namespace)
                              for annotation in arguments]
         if len(arguments) > 1:
@@ -136,13 +136,13 @@ class Callable(Annotation):
         origin = self.origin
 
         if origin in namespace.values():
-            return namespaces.search(origin,
-                                     namespace=namespace)
+            return namespaces.search_name(origin,
+                                          namespace=namespace)
 
         result = str(origin)
         base = origin.__origin__
-        base_name = namespaces.search(base,
-                                      namespace=namespace)
+        base_name = namespaces.search_name(base,
+                                           namespace=namespace)
         result = result.replace(str(base),
                                 base_name)
         for annotation in self.parameters:
@@ -170,13 +170,13 @@ class Iterable(Annotation):
         origin = self.origin
 
         if origin in namespace.values():
-            return namespaces.search(origin,
-                                     namespace=namespace)
+            return namespaces.search_name(origin,
+                                          namespace=namespace)
 
         result = str(origin)
         base = origin.__origin__
-        base_name = namespaces.search(base,
-                                      namespace=namespace)
+        base_name = namespaces.search_name(base,
+                                           namespace=namespace)
         result = result.replace(str(base),
                                 base_name)
         for annotation in self.elements:
@@ -203,13 +203,13 @@ class Mapping(Annotation):
         origin = self.origin
 
         if origin in namespace.values():
-            return namespaces.search(origin,
-                                     namespace=namespace)
+            return namespaces.search_name(origin,
+                                          namespace=namespace)
 
         result = str(origin)
         base = origin.__origin__
-        base_name = namespaces.search(base,
-                                      namespace=namespace)
+        base_name = namespaces.search_name(base,
+                                           namespace=namespace)
         result = result.replace(str(base),
                                 base_name)
         result = replace_sub_annotation(result,

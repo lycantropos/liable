@@ -29,9 +29,9 @@ def from_module(module: ModuleType) -> NamespaceType:
     return result
 
 
-def search(object_: Any,
-           *,
-           namespace: NamespaceType) -> str:
+def search_name(object_: Any,
+                *,
+                namespace: NamespaceType) -> str:
     path = search_path(object_,
                        namespace=namespace)
     if is_object_relative(object_,
