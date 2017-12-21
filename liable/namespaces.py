@@ -14,36 +14,45 @@ from . import (catalog,
 from .utils import to_name
 from .validators import validate_modules
 
-NamespaceType = Dict[str, Any]
-
-MODULE_UTILITY_FIELDS = ['__name__', '__doc__', '__package__',
-                         '__loader__', '__spec__',
-                         '__file__', '__path__', '__cached__',
-                         '__builtins__', '__all__']
+NamespaceType = Dict[catalog.ObjectPath, Any]
 
 
-def from_module(module: ModuleType,
-                *,
-                utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
-                ) -> NamespaceType:
-    result = dict(vars(module))
-    for field in utility_fields:
-        result.pop(field, None)
+def from_module(module: ModuleType) -> NamespaceType:
+    module_name = module.__name__
+    result = {catalog.ObjectPath(module=module_name,
+                                 object=object_name): content
+              for object_name, content in vars(module).items()
+              if modules.is_object_from_module(content,
+                                               module=module)}
+    objects = dependent_objects(module)
+    result.update(objects)
     return result
 
 
 def search(object_: Any,
            *,
            namespace: NamespaceType) -> str:
-    if object_ in namespace.values():
-        object_paths = search_objects(object_,
-                                      namespace=namespace)
+    path = search_path(object_,
+                       namespace=namespace)
+    if is_object_relative(object_,
+                          namespace=namespace):
+        return path.object
+    return str(path)
+
+
+def search_path(object_: Any,
+                *,
+                namespace: NamespaceType) -> catalog.ObjectPath:
+    if is_object_relative(object_,
+                          namespace=namespace):
+        object_paths = search_relative_objects(object_,
+                                               namespace=namespace)
     else:
         object_paths = chain.from_iterable(
-                search_objects(object_,
-                               namespace=from_module(module),
-                               module_name=module_name)
-                for module_name, module in namespace_modules(namespace))
+                search_submodule_objects(object_,
+                                         namespace=from_module(module),
+                                         module_name=str(module_path))
+                for module_path, module in namespace_modules(namespace))
     try:
         return next(object_paths)
     except StopIteration as err:
@@ -51,21 +60,44 @@ def search(object_: Any,
                           .format(object=to_name(object_))) from err
 
 
-def search_objects(object_: Any,
-                   *,
-                   namespace: NamespaceType,
-                   module_name: str = '') -> str:
-    for name, content in namespace.items():
+def is_object_relative(object_: Any,
+                       *,
+                       namespace: NamespaceType) -> bool:
+    """
+    Object called **relative** in namespace
+    if it is defined in original module
+    or imported using ``import from`` statement.
+
+    Object called **absolute** in namespace
+    if it is defined in module
+    which imported in original one using ``import`` statement.
+    """
+    return object_ in namespace.values()
+
+
+def search_relative_objects(object_: Any,
+                            *,
+                            namespace: NamespaceType) -> str:
+    for path, content in namespace.items():
         if content is object_:
-            non_empty_path_parts = map(str, filter(None, [module_name, name]))
-            yield catalog.SEPARATOR.join(non_empty_path_parts)
+            yield path
+
+
+def search_submodule_objects(object_: Any,
+                             *,
+                             namespace: NamespaceType,
+                             module_name: str) -> str:
+    for path, content in namespace.items():
+        if content is object_:
+            yield catalog.ObjectPath(module=module_name,
+                                     object=path.object)
 
 
 def namespace_modules(namespace: NamespaceType
                       ) -> Iterator[Tuple[str, ModuleType]]:
-    for name, content in namespace.items():
+    for path, content in namespace.items():
         if inspect.ismodule(content):
-            yield name, content
+            yield path, content
 
 
 def dependent_objects(module: ModuleType) -> NamespaceType:
