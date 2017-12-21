@@ -159,12 +159,9 @@ def generate_module_tests_code(module_path: str,
     if Optional not in namespace.values():
         namespace['Optional'] = Optional
 
-    dependent_objects = dependent_objects_namespace(module_path)
-    dependent_objects.update(built_ins)
-
     module_objects = [content
-                      for name, content in namespace.items()
-                      if name not in dependent_objects]
+                      for content in namespace.values()
+                      if is_object_from_module(content, module)]
     module_functions = [object_
                         for object_ in module_objects
                         if inspect.isfunction(object_)]
@@ -217,6 +214,11 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
 
     imports = map(relative_import_to_absolute, imports)
     return dict(load_dependent_objects(imports))
+
+
+def is_object_from_module(object_: Any,
+                          module: ModuleType) -> bool:
+    return inspect.getmodule(object_) is module
 
 
 def generate_test_case(function: FunctionType,
