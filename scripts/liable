@@ -4,7 +4,6 @@ import collections
 import inspect
 import operator
 import os
-import sys
 from functools import partial
 from itertools import (filterfalse,
                        chain)
