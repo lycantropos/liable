@@ -2,6 +2,7 @@ import inspect
 from itertools import chain
 from types import ModuleType
 from typing import (Any,
+                    Iterable,
                     Iterator,
                     Dict,
                     Tuple)
@@ -10,6 +11,21 @@ from . import modulation
 from .utils import to_name
 
 NamespaceType = Dict[str, Any]
+
+MODULE_UTILITY_FIELDS = ['__name__', '__doc__', '__package__',
+                         '__loader__', '__spec__',
+                         '__file__', '__path__', '__cached__',
+                         '__builtins__', '__all__']
+
+
+def to_namespace(module: ModuleType,
+                 *,
+                 utility_fields: Iterable[str] = MODULE_UTILITY_FIELDS
+                 ) -> NamespaceType:
+    result = dict(vars(module))
+    for field in utility_fields:
+        result.pop(field, None)
+    return result
 
 
 def search(object_: Any,
