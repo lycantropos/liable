@@ -58,3 +58,7 @@ def is_module_name(name: str) -> bool:
 
 def is_import_statement(node: ast.AST) -> bool:
     return isinstance(node, (ast.Import, ast.ImportFrom))
+
+
+def is_import_relative(statement: ast.ImportFrom) -> bool:
+    return statement.level > 0

@@ -33,6 +33,7 @@ from liable import (modulation,
 from liable.arboretum import (ImportType,
                               split_imports,
                               is_import_statement,
+                              is_import_relative,
                               to_tree)
 from liable.strings import (join_strings,
                             join_with_wrapping)
@@ -218,9 +219,6 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
             module_path = os.path.normpath(module_path)
             module = catalog.to_import(module_path)
         return module
-
-    def is_import_relative(statement: ast.ImportFrom) -> bool:
-        return statement.level > 0
 
     imports = map(relative_import_to_absolute, imports)
     return dict(load_dependent_objects(imports))
