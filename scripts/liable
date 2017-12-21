@@ -25,7 +25,7 @@ import click
 from pathspec import (PathSpec,
                       patterns)
 
-from liable import (modulation,
+from liable import (modules,
                     namespaces,
                     annotator,
                     catalog,
@@ -152,7 +152,7 @@ def generate_module_tests_code(module_path: str,
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int,
                                coder: CoderType) -> str:
-    module = modulation.from_path(module_path)
+    module = modules.from_path(module_path)
 
     namespace = namespaces.from_module(module)
     namespace.update(built_ins)
@@ -285,7 +285,7 @@ def load_dependent_objects(imports: Iterable[ImportType]
     dependencies_names = set(dependent_objects_names.values())
     validate_modules(dependencies_names)
     dependencies = dict(zip(dependencies_names,
-                            map(modulation.from_name, dependencies_names)))
+                            map(modules.from_name, dependencies_names)))
     yield from juxtapose_objects(dependent_objects_names,
                                  dependencies)
 
