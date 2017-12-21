@@ -76,10 +76,10 @@ def import_absolutizer(module_path: str
     return to_absolute
 
 
-def to_tree(source: str,
-            *,
-            file_name: str = '<unknown>',
-            mode: str = 'exec') -> ast.AST:
+def from_source(source: str,
+                *,
+                file_name: str = '<unknown>',
+                mode: str = 'exec') -> ast.AST:
     return compile(source, file_name, mode, ast.PyCF_ONLY_AST)
 
 

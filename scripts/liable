@@ -27,13 +27,9 @@ from pathspec import (PathSpec,
 from liable import (modules,
                     namespaces,
                     annotator,
+                    arboretum,
                     catalog,
                     files)
-from liable.arboretum import (ImportType,
-                              split_imports,
-                              is_import_statement,
-                              is_import_relative,
-                              to_tree)
 from liable.strings import (join_strings,
                             join_with_wrapping)
 from liable.utils import is_python_module
@@ -190,14 +186,15 @@ def generate_module_tests_code(module_path: str,
 def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
     with open(module_path) as source_file:
         source = source_file.read()
-    tree = to_tree(source,
-                   file_name=module_path)
-    imports = filter(is_import_statement, tree.body)
+    tree = arboretum.from_source(source,
+                       file_name=module_path)
+    imports = filter(arboretum.is_import_statement, tree.body)
 
     module_directory_path = os.path.dirname(module_path)
     module_directory_relative_path = catalog.to_relative(module_directory_path)
 
-    def relative_import_to_absolute(statement: ImportType) -> ImportType:
+    def relative_import_to_absolute(statement: arboretum.ImportType
+                                    ) -> arboretum.ImportType:
         if isinstance(statement, ast.Import):
             return statement
         else:
@@ -210,7 +207,7 @@ def dependent_objects_namespace(module_path: str) -> namespaces.NamespaceType:
 
     def to_package(statement: ast.ImportFrom) -> str:
         module = statement.module or ''
-        if is_import_relative(statement):
+        if arboretum.is_import_relative(statement):
             jumps = (os.pardir + os.sep) * (statement.level - 1)
             module_path = os.path.join(module_directory_relative_path,
                                        jumps, module)
@@ -277,22 +274,23 @@ def generate_test_case(function: FunctionType,
                                      return_type=return_type)
 
 
-def load_dependent_objects(imports: Iterable[ImportType]
+def load_dependent_objects(imports: Iterable[arboretum.ImportType]
                            ) -> Iterator[Tuple[str, Any]]:
-    dependent_objects_names = dict(chain.from_iterable(map(split_imports,
-                                                           imports)))
-    dependencies_names = set(dependent_objects_names.values())
+    objects_dependencies_names = chain.from_iterable(map(arboretum.split_imports,
+                                                    imports))
+    dependencies_names_by_objects_names = dict(objects_dependencies_names)
+    dependencies_names = set(dependencies_names_by_objects_names.values())
     validate_modules(dependencies_names)
     dependencies = dict(zip(dependencies_names,
                             map(modules.from_name, dependencies_names)))
-    yield from juxtapose_objects(dependent_objects_names,
+    yield from juxtapose_objects(dependencies_names_by_objects_names,
                                  dependencies)
 
 
-def juxtapose_objects(objects_by_modules_names: Mapping[str, str],
+def juxtapose_objects(modules_names_by_objects_names: Mapping[str, str],
                       modules_by_names: Mapping[str, ModuleType]
                       ) -> Iterator[Tuple[str, Any]]:
-    for object_name, module_name in objects_by_modules_names.items():
+    for object_name, module_name in modules_names_by_objects_names.items():
         module = modules_by_names[module_name]
         try:
             object_ = getattr(module, object_name)

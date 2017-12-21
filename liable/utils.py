@@ -1,7 +1,7 @@
 import os
 from typing import Any
 
-from .arboretum import to_tree
+from . import arboretum
 
 
 def to_name(object_: Any) -> str:
@@ -21,8 +21,8 @@ def is_python_module(path: str) -> bool:
         source = source_file.read()
 
     try:
-        to_tree(source,
-                file_name=path)
+        arboretum.from_source(source,
+                              file_name=path)
     except SyntaxError:
         return False
     else:
