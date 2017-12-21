@@ -5,12 +5,12 @@ from types import ModuleType
 from . import catalog
 
 
-def from_name(name: str) -> ModuleType:
+def skeleton_from_name(name: str) -> ModuleType:
     spec = importlib.util.find_spec(name)
     return importlib.util.module_from_spec(spec)
 
 
-def from_path(path: str) -> ModuleType:
+def skeleton_from_path(path: str) -> ModuleType:
     module_name = catalog.to_import(catalog.to_relative(path))
     loader = importlib._bootstrap_external.SourceFileLoader(module_name,
                                                             path=path)
