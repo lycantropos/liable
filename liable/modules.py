@@ -57,3 +57,7 @@ def search(object_path: catalog.ObjectPath,
     else:
         object_ = getattr(module, object_path.object)
     return object_
+
+
+def is_built_in(module: ModuleType) -> bool:
+    return not hasattr(module, '__file__')
