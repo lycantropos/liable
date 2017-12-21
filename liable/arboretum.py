@@ -25,17 +25,21 @@ def split_imports(statement: ImportType,
 
         sup_modules = chain.from_iterable(map(parse_sup_modules,
                                               objects_names))
-        objects_names = list(chain(objects_names,
-                                   sup_modules))
+        objects_names = list(chain(objects_names, sup_modules))
         yield from zip(objects_names, objects_names)
     else:
-        package = statement.module
+        if is_import_relative(statement):
+            err_msg = ('Import statement should be absolute, '
+                       'relative found.')
+            raise ValueError(err_msg)
+
+        package_name = statement.module
 
         def module_name(object_name: str) -> str:
-            candidate = package + sep + object_name
+            candidate = package_name + sep + object_name
             if is_module_name(candidate):
                 return candidate
-            return package
+            return package_name
 
         yield from zip(objects_names, map(module_name, objects_names))
 
