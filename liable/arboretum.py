@@ -12,9 +12,12 @@ from typing import (Union,
                     Iterable,
                     Iterator)
 
-from . import catalog
+from . import (catalog,
+               modules)
 
 ImportType = Union[ast.Import, ast.ImportFrom]
+
+ALL_OBJECTS_WILDCARD = '*'
 
 
 def from_source(source: str,
@@ -32,7 +35,8 @@ def from_module(module: ModuleType) -> ast.AST:
 
 def split_import(statement: ImportType,
                  *,
-                 sep: str = catalog.SEPARATOR
+                 sep: str = catalog.SEPARATOR,
+                 all_objects_wildcard: str = ALL_OBJECTS_WILDCARD
                  ) -> Iterator[catalog.ObjectPath]:
     name = operator.attrgetter('name')
     names = list(map(name, statement.names))
@@ -54,7 +58,15 @@ def split_import(statement: ImportType,
             raise ValueError(err_msg)
 
         objects_names = names
-        modules_names = repeat(statement.module)
+
+        module_name = statement.module
+
+        if all_objects_wildcard in objects_names:
+            module = modules.from_name(module_name)
+            objects_names.remove(all_objects_wildcard)
+            objects_names.extend(module.__all__)
+
+        modules_names = repeat(module_name)
     yield from starmap(catalog.ObjectPath, zip(modules_names, objects_names))
 
 
