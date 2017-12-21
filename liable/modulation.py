@@ -1,8 +1,26 @@
 import importlib._bootstrap_external
 import importlib.util
+import sys
 from types import ModuleType
+from typing import Dict
 
 from . import catalog
+
+
+def from_name(name: str,
+              *,
+              cache: Dict[str, ModuleType] = sys.modules) -> ModuleType:
+    skeleton = skeleton_from_name(name)
+    return load(skeleton,
+                cache=cache)
+
+
+def from_path(name: str,
+              *,
+              cache: Dict[str, ModuleType] = sys.modules) -> ModuleType:
+    skeleton = skeleton_from_path(name)
+    return load(skeleton,
+                cache=cache)
 
 
 def skeleton_from_name(name: str) -> ModuleType:
@@ -19,5 +37,11 @@ def skeleton_from_path(path: str) -> ModuleType:
     return importlib.util.module_from_spec(spec)
 
 
-def load(module: ModuleType) -> None:
-    module.__loader__.exec_module(module)
+def load(module: ModuleType,
+         *,
+         cache: Dict[str, ModuleType]) -> ModuleType:
+    cached_module = cache.get(module.__name__, None)
+    if cached_module is None:
+        module.__loader__.exec_module(module)
+        return module
+    return cached_module

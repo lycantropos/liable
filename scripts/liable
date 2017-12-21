@@ -152,8 +152,7 @@ def generate_module_tests_code(module_path: str,
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int,
                                coder: CoderType) -> str:
-    module = modulation.skeleton_from_path(module_path)
-    modulation.load(module)
+    module = modulation.from_path(module_path)
 
     namespace = namespaces.from_module(module)
     namespace.update(built_ins)
@@ -285,15 +284,8 @@ def load_dependent_objects(imports: Iterable[ImportType]
                                                            imports)))
     dependencies_names = set(dependent_objects_names.values())
     validate_modules(dependencies_names)
-    dependencies_skeletons = map(modulation.skeleton_from_name,
-                                 dependencies_names)
-    dependencies = dict(zip(dependencies_names, dependencies_skeletons))
-    for module_name, module in dependencies.items():
-        loaded_module = sys.modules.get(module_name, None)
-        if loaded_module is None:
-            modulation.load(module)
-        else:
-            dependencies[module_name] = loaded_module
+    dependencies = dict(zip(dependencies_names,
+                            map(modulation.from_name, dependencies_names)))
     yield from juxtapose_objects(dependent_objects_names,
                                  dependencies)
 
