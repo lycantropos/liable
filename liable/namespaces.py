@@ -49,9 +49,9 @@ def search_path(object_: Any,
                                                namespace=namespace)
     else:
         object_paths = chain.from_iterable(
-                search_submodule_objects(object_,
-                                         namespace=from_module(module),
-                                         module_name=str(module_path))
+                search_absolute_objects(object_,
+                                        namespace=from_module(module),
+                                        module_name=str(module_path))
                 for module_path, module in namespace_modules(namespace))
     try:
         return next(object_paths)
@@ -77,16 +77,16 @@ def is_object_relative(object_: Any,
 
 def search_relative_objects(object_: Any,
                             *,
-                            namespace: NamespaceType) -> str:
+                            namespace: NamespaceType) -> catalog.ObjectPath:
     for path, content in namespace.items():
         if content is object_:
             yield path
 
 
-def search_submodule_objects(object_: Any,
-                             *,
-                             namespace: NamespaceType,
-                             module_name: str) -> str:
+def search_absolute_objects(object_: Any,
+                            *,
+                            namespace: NamespaceType,
+                            module_name: str) -> catalog.ObjectPath:
     for path, content in namespace.items():
         if content is object_:
             yield catalog.ObjectPath(module=module_name,
