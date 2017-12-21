@@ -1,10 +1,12 @@
 import ast
+import inspect
 import operator
 import os
 import pkgutil
 from itertools import (chain,
                        repeat,
                        starmap)
+from types import ModuleType
 from typing import (Union,
                     Callable,
                     Iterable,
@@ -13,6 +15,19 @@ from typing import (Union,
 from . import catalog
 
 ImportType = Union[ast.Import, ast.ImportFrom]
+
+
+def from_source(source: str,
+                *,
+                file_name: str = '<unknown>',
+                mode: str = 'exec') -> ast.AST:
+    return compile(source, file_name, mode, ast.PyCF_ONLY_AST)
+
+
+def from_module(module: ModuleType) -> ast.AST:
+    source = inspect.getsource(module)
+    return from_source(source,
+                       file_name=module.__file__)
 
 
 def split_import(statement: ImportType,
@@ -71,13 +86,6 @@ def import_absolutizer(module_path: str
         return module
 
     return to_absolute
-
-
-def from_source(source: str,
-                *,
-                file_name: str = '<unknown>',
-                mode: str = 'exec') -> ast.AST:
-    return compile(source, file_name, mode, ast.PyCF_ONLY_AST)
 
 
 def is_module_name(name: str) -> bool:
