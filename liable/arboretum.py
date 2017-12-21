@@ -33,11 +33,11 @@ def from_module(module: ModuleType) -> ast.AST:
                        file_name=module.__file__)
 
 
-def split_import(statement: ImportType,
-                 *,
-                 sep: str = catalog.SEPARATOR,
-                 all_objects_wildcard: str = ALL_OBJECTS_WILDCARD
-                 ) -> Iterator[catalog.ObjectPath]:
+def to_object_path(statement: ImportType,
+                   *,
+                   sep: str = catalog.SEPARATOR,
+                   all_objects_wildcard: str = ALL_OBJECTS_WILDCARD
+                   ) -> Iterator[catalog.ObjectPath]:
     name = operator.attrgetter('name')
     names = list(map(name, statement.names))
     if isinstance(statement, ast.Import):

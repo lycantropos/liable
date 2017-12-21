@@ -114,8 +114,7 @@ def dependent_objects_paths(module: ModuleType
     module_path = module.__file__
     relative_import_to_absolute = arboretum.import_absolutizer(module_path)
     imports = map(relative_import_to_absolute, imports)
-    yield from chain.from_iterable(map(arboretum.split_import,
-                                       imports))
+    yield from chain.from_iterable(map(arboretum.to_object_path, imports))
 
 
 def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
