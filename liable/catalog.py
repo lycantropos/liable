@@ -1,10 +1,19 @@
 import inspect
 import os
 import sys
+from collections import namedtuple
 from typing import (Iterable,
                     List)
 
 from . import modulation
+
+
+class ObjectPath(namedtuple('ObjectPath', ['module', 'object'])):
+    def __str__(self):
+        if self.object is not None:
+            return self.module + modulation.SEPARATOR + self.object
+        else:
+            return self.module
 
 
 def to_relative(path: str,
