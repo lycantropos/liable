@@ -63,7 +63,8 @@ class Union(Annotation):
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
         origin = self.origin
 
-        if origin in namespace.values():
+        if namespaces.is_object_relative(origin,
+                                         namespace=namespace):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
@@ -96,7 +97,8 @@ class Optional(Annotation):
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
         origin = self.origin
 
-        if origin in namespace.values():
+        if namespaces.is_object_relative(origin,
+                                         namespace=namespace):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
@@ -135,7 +137,8 @@ class Callable(Annotation):
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
         origin = self.origin
 
-        if origin in namespace.values():
+        if namespaces.is_object_relative(origin,
+                                         namespace=namespace):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
@@ -169,7 +172,8 @@ class Iterable(Annotation):
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
         origin = self.origin
 
-        if origin in namespace.values():
+        if namespaces.is_object_relative(origin,
+                                         namespace=namespace):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
@@ -202,7 +206,8 @@ class Mapping(Annotation):
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
         origin = self.origin
 
-        if origin in namespace.values():
+        if namespaces.is_object_relative(origin,
+                                         namespace=namespace):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
