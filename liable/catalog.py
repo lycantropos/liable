@@ -5,13 +5,13 @@ from collections import namedtuple
 from typing import (Iterable,
                     List)
 
-from . import modulation
+SEPARATOR = '.'
 
 
 class ObjectPath(namedtuple('ObjectPath', ['module', 'object'])):
     def __str__(self):
         if self.object is not None:
-            return self.module + modulation.SEPARATOR + self.object
+            return self.module + SEPARATOR + self.object
         else:
             return self.module
 
@@ -35,7 +35,7 @@ def to_relative(path: str,
 def to_import(path: str) -> str:
     path_parts = path.split(os.sep)
     path_parts = normalize_path_parts(path_parts)
-    return modulation.SEPARATOR.join(path_parts)
+    return SEPARATOR.join(path_parts)
 
 
 def normalize_path_parts(parts: List[str]) -> List[str]:

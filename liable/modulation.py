@@ -4,8 +4,6 @@ from types import ModuleType
 
 from . import catalog
 
-SEPARATOR = '.'
-
 
 def from_name(name: str) -> ModuleType:
     spec = importlib.util.find_spec(name)
