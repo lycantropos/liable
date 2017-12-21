@@ -1,2 +1,3 @@
 from .base import Annotation
-from .utils import normalize
+from .utils import (normalize,
+                    walk)

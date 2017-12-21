@@ -1,9 +1,13 @@
 import inspect
-from itertools import filterfalse
-from typing import (Any,
+from itertools import (filterfalse,
+                       chain)
+from typing import (TypingMeta,
+                    Any,
                     Union,
-                    Type)
+                    Type,
+                    Iterator)
 
+from liable.utils import to_name
 from . import annotations
 from .base import Annotation
 from .detectors import (is_typing,
@@ -74,6 +78,39 @@ def to_annotation(annotation: Any) -> Annotation:
                 return_type=to_annotation(return_type_annotation))
 
     return annotations.PlainAnnotation(annotation)
+
+
+def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
+    if not isinstance(annotation, Annotation):
+        err_msg = ('"{cls}" is not an annotation class.'
+                   .format(cls=to_name(annotation.__class__)))
+        raise TypeError(err_msg)
+
+    if isinstance(annotation, (annotations.Raw,
+                               annotations.PlainAnnotation,
+                               annotations.Any)):
+        yield annotation.origin
+    elif isinstance(annotation, (annotations.Union, annotations.Optional)):
+        yield annotation.origin.__origin__
+        yield from chain.from_iterable(map(walk, annotation.arguments))
+    elif isinstance(annotation, annotations.Iterable):
+        yield annotation.origin.__origin__
+        yield from chain.from_iterable(map(walk, annotation.elements))
+    elif isinstance(annotation, annotations.Mapping):
+        yield annotation.origin.__origin__
+        yield from walk(annotation.keys)
+        yield from walk(annotation.values)
+    elif isinstance(annotation, annotations.Callable):
+        yield annotation.origin.__origin__
+        yield from chain.from_iterable(map(walk, annotation.parameters))
+        yield from walk(annotation.return_type)
+    else:
+        err_msg = ('Do not know how to walk through '
+                   '"{cls}" annotation class '
+                   'object "{object}".'
+                   .format(cls=to_name(annotation.__class__),
+                           object=to_name(annotation)))
+        raise TypeError(err_msg)
 
 
 def none_type_to_none(object_: Any) -> Any:
