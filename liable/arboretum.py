@@ -3,6 +3,7 @@ import inspect
 import operator
 import os
 import pkgutil
+from functools import partial
 from itertools import (chain,
                        repeat,
                        starmap)
@@ -40,18 +41,9 @@ def to_object_path(statement: ImportType,
                    ) -> Iterator[catalog.ObjectPath]:
     name = operator.attrgetter('name')
     names = list(map(name, statement.names))
-    if isinstance(statement, ast.Import):
-        # all names are modules names
-        objects_names = repeat(None)
+    objects_are_relative = isinstance(statement, ast.ImportFrom)
 
-        def sup_modules(module_name: str) -> Iterable[str]:
-            *result, _ = module_name.split(sep)
-            yield from result
-
-        sup_modules = chain.from_iterable(map(sup_modules,
-                                              names))
-        modules_names = chain(names, sup_modules)
-    else:
+    if objects_are_relative:
         if is_import_relative(statement):
             err_msg = ('Import statement should be absolute, '
                        'relative found.')
@@ -67,7 +59,21 @@ def to_object_path(statement: ImportType,
             objects_names.extend(module.__all__)
 
         modules_names = repeat(module_name)
-    yield from starmap(catalog.ObjectPath, zip(modules_names, objects_names))
+    else:
+        # all names are modules names
+        objects_names = repeat(None)
+
+        def sup_modules(module_name: str) -> Iterable[str]:
+            *result, _ = module_name.split(sep)
+            yield from result
+
+        sup_modules = chain.from_iterable(map(sup_modules,
+                                              names))
+        modules_names = chain(names, sup_modules)
+
+    object_path_factory = partial(catalog.ObjectPath,
+                                  relative=objects_are_relative)
+    yield from starmap(object_path_factory, zip(modules_names, objects_names))
 
 
 def import_absolutizer(module_path: str

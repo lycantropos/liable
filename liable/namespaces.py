@@ -1,4 +1,5 @@
 import inspect
+import operator
 from functools import partial
 from itertools import chain
 from types import ModuleType
@@ -20,7 +21,8 @@ NamespaceType = Dict[catalog.ObjectPath, Any]
 def from_module(module: ModuleType) -> NamespaceType:
     module_name = module.__name__
     result = {catalog.ObjectPath(module=module_name,
-                                 object=object_name): content
+                                 object=object_name,
+                                 relative=True): content
               for object_name, content in vars(module).items()
               if modules.is_object_from_module(content,
                                                module=module)}
@@ -34,8 +36,7 @@ def search_name(object_: Any,
                 namespace: NamespaceType) -> str:
     path = search_path(object_,
                        namespace=namespace)
-    if is_object_relative(object_,
-                          namespace=namespace):
+    if path.relative:
         return path.object
     return str(path)
 
@@ -43,8 +44,9 @@ def search_name(object_: Any,
 def search_path(object_: Any,
                 *,
                 namespace: NamespaceType) -> catalog.ObjectPath:
-    if is_object_relative(object_,
-                          namespace=namespace):
+    is_relative = is_object_relative(object_,
+                                     namespace=namespace)
+    if is_relative:
         object_paths = search_relative_objects(object_,
                                                namespace=namespace)
     else:
@@ -90,7 +92,8 @@ def search_absolute_objects(object_: Any,
     for path, content in namespace.items():
         if content is object_:
             yield catalog.ObjectPath(module=module_name,
-                                     object=path.object)
+                                     object=path.object,
+                                     relative=False)
 
 
 def namespace_modules(namespace: NamespaceType
@@ -119,7 +122,7 @@ def dependent_objects_paths(module: ModuleType
 
 def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
                            ) -> Iterator[Tuple[catalog.ObjectPath, Any]]:
-    dependencies_names = dict(objects_paths).keys()
+    dependencies_names = set(map(operator.attrgetter('module'), objects_paths))
     validate_modules(dependencies_names)
     dependencies = dict(zip(dependencies_names,
                             map(modules.from_name, dependencies_names)))

@@ -8,12 +8,14 @@ from typing import (Iterable,
 SEPARATOR = '.'
 
 
-class ObjectPath(namedtuple('ObjectPath', ['module', 'object'])):
+class ObjectPath(namedtuple('ObjectPath', ['module', 'object', 'relative'])):
     def __str__(self):
-        if self.object is not None:
-            return self.module + SEPARATOR + self.object
-        else:
+        if self.object is None:
             return self.module
+        elif self.module is None:
+            return self.object
+        else:
+            return self.module + SEPARATOR + self.object
 
 
 def to_relative(path: str,
