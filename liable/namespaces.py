@@ -1,3 +1,4 @@
+import builtins
 import inspect
 import operator
 from functools import partial
@@ -29,6 +30,15 @@ def from_module(module: ModuleType) -> NamespaceType:
     objects = dependent_objects(module)
     result.update(objects)
     return result
+
+
+def built_ins(module: ModuleType = builtins) -> NamespaceType:
+    module_map = dict(vars(module))
+    module_map['...'] = module_map.pop('Ellipsis')
+    return {catalog.ObjectPath(object=name,
+                               module=None,
+                               relative=True): content
+            for name, content in module_map.items()}
 
 
 def search_name(object_: Any,
