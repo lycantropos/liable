@@ -9,7 +9,10 @@ from typing import (TypingMeta,
                     Collection)
 
 from liable import namespaces
+from liable.strings import join_strings
 from .base import Annotation
+
+ELLIPSIS_STRING = '...'
 
 
 class Raw(Annotation):
@@ -68,18 +71,16 @@ class Union(Annotation):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
-        result = str(origin)
-
         base = origin.__origin__
         base_name = namespaces.search_name(base,
                                            namespace=namespace)
-        result = result.replace(str(base),
-                                base_name)
-        for annotation in self.arguments:
-            result = replace_sub_annotation(result,
-                                            sub_annotation=annotation,
-                                            namespace=namespace)
-        return result
+        arguments_names = [argument.to_string(namespace)
+                           for argument in self.arguments]
+        arguments_name = join_strings(arguments_names,
+                                      sep=', ')
+        return ('{base}[{arguments}]'
+                .format(base=base_name,
+                        arguments=arguments_name))
 
     @property
     def bases(self) -> Tuple[Type, ...]:
@@ -108,15 +109,16 @@ class Optional(Annotation):
         # looks better than
         #   Optional[Union[...types...]]
         origin_cls = OptionalType if len(arguments) == 1 else UnionType
-        origin_name = namespaces.search_name(origin_cls,
-                                             namespace=namespace)
-        arguments_strings = [annotation.to_string(namespace)
-                             for annotation in arguments]
+        base_name = namespaces.search_name(origin_cls,
+                                           namespace=namespace)
+        arguments_names = [annotation.to_string(namespace)
+                           for annotation in arguments]
         if len(arguments) > 1:
-            arguments_strings.append(str(None))
-        arguments_str = ', '.join(arguments_strings)
-        return '{origin}[{arguments}]'.format(origin=origin_name,
-                                              arguments=arguments_str)
+            arguments_names.append(str(None))
+        arguments_name = join_strings(arguments_names,
+                                      sep=', ')
+        return '{base}[{arguments}]'.format(base=base_name,
+                                            arguments=arguments_name)
 
     @property
     def bases(self) -> Tuple[Type, ...]:
@@ -142,20 +144,23 @@ class Callable(Annotation):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
-        result = str(origin)
         base = origin.__origin__
         base_name = namespaces.search_name(base,
                                            namespace=namespace)
-        result = result.replace(str(base),
-                                base_name)
-        for annotation in self.parameters:
-            result = replace_sub_annotation(result,
-                                            sub_annotation=annotation,
-                                            namespace=namespace)
-        result = replace_sub_annotation(result,
-                                        sub_annotation=self.return_type,
-                                        namespace=namespace)
-        return result
+        parameters_names = [parameter.to_string(namespace)
+                            for parameter in self.parameters]
+        parameters_name = join_strings(parameters_names,
+                                       sep=', ')
+        return_type_name = self.return_type.to_string(namespace)
+        if parameters_name == ELLIPSIS_STRING:
+            return ('{origin}[{parameters}, {return_type}]'
+                    .format(origin=base_name,
+                            parameters=parameters_name,
+                            return_type=return_type_name))
+        return ('{origin}[[{parameters}], {return_type}]'
+                .format(origin=base_name,
+                        parameters=parameters_name,
+                        return_type=return_type_name))
 
     @property
     def bases(self) -> Tuple[Type[collections.Callable]]:
@@ -177,17 +182,16 @@ class Iterable(Annotation):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
-        result = str(origin)
         base = origin.__origin__
         base_name = namespaces.search_name(base,
                                            namespace=namespace)
-        result = result.replace(str(base),
-                                base_name)
-        for annotation in self.elements:
-            result = replace_sub_annotation(result,
-                                            sub_annotation=annotation,
-                                            namespace=namespace)
-        return result
+        elements_names = [argument.to_string(namespace)
+                          for argument in self.elements]
+        elements_name = join_strings(elements_names,
+                                     sep=', ')
+        return ('{base}[{elements}]'
+                .format(base=base_name,
+                        elements=elements_name))
 
     @property
     def bases(self) -> Tuple[Type[collections.Iterable]]:
@@ -211,29 +215,16 @@ class Mapping(Annotation):
             return namespaces.search_name(origin,
                                           namespace=namespace)
 
-        result = str(origin)
         base = origin.__origin__
         base_name = namespaces.search_name(base,
                                            namespace=namespace)
-        result = result.replace(str(base),
-                                base_name)
-        result = replace_sub_annotation(result,
-                                        sub_annotation=self.keys,
-                                        namespace=namespace)
-        result = replace_sub_annotation(result,
-                                        sub_annotation=self.values,
-                                        namespace=namespace)
-        return result
+        keys_name = self.keys.to_string(namespace)
+        values_name = self.values.to_string(namespace)
+        return ('{base}[{keys}, {values}]'
+                .format(base=base_name,
+                        keys=keys_name,
+                        values=values_name))
 
     @property
     def bases(self) -> Tuple[Type[collections.Mapping]]:
         return self.origin.__extra__,
-
-
-def replace_sub_annotation(annotation_name: str,
-                           *,
-                           sub_annotation: Annotation,
-                           namespace: namespaces.NamespaceType) -> str:
-    sub_annotation_name = sub_annotation.to_string(namespace)
-    return annotation_name.replace(str(sub_annotation.origin),
-                                   sub_annotation_name)
