@@ -128,7 +128,12 @@ def generate_tests(spaces_count: int,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    built_ins = namespaces.from_module(builtins)
+    built_ins_map = dict(vars(builtins))
+    built_ins_map['...'] = built_ins_map.pop('Ellipsis')
+    built_ins = {catalog.ObjectPath(object=name,
+                                    module=None,
+                                    relative=True): content
+                 for name, content in built_ins_map.items()}
     test_cases_generator = partial(generate_module_tests_code,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count,
