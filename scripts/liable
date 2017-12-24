@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-import ast
 import collections
 import inspect
 import operator
 import os
+from collections import defaultdict
 from functools import partial
 from itertools import (filterfalse,
                        chain)
-from types import (ModuleType,
-                   FunctionType)
+from types import FunctionType
 from typing import (Any,
                     Optional,
                     Type,
                     Callable,
-                    Iterable,
                     Iterator,
-                    Mapping,
+                    Iterable,
+                    Dict,
                     Tuple,
                     List)
 
@@ -27,15 +26,13 @@ from pathspec import (PathSpec,
 from liable import (modules,
                     namespaces,
                     annotator,
-                    arboretum,
-                    catalog,
-                    files)
+                    files,
+                    catalog)
 from liable.strings import (join_strings,
                             join_with_wrapping)
 from liable.utils import is_python_module
 from liable.validators import (validate_paths,
-                               validate_modules_paths,
-                               validate_modules)
+                               validate_modules_paths)
 
 
 @click.group()
@@ -167,15 +164,89 @@ def generate_module_tests_code(module_path: str,
                         for object_ in module_objects
                         if inspect.isfunction(object_)]
 
+    dependent_objects = namespaces.dependent_objects(module)
+    dependent_objects.update(built_ins)
+    signatures_dependants = chain.from_iterable(map(function_dependants,
+                                                    module_functions))
+    object_path_seeker = partial(search_object_path,
+                                 namespace=namespace,
+                                 dependent_objects=dependent_objects)
+    dependants_paths = set(chain(map(object_path_seeker,
+                                     signatures_dependants)))
+
+    def is_built_in_path(object_path: catalog.ObjectPath) -> bool:
+        return object_path in built_ins
+
+    dependants_paths = filterfalse(is_built_in_path, dependants_paths)
+    dependants_paths_map = objects_paths_by_modules_names(dependants_paths)
+
+    imports = to_imports(dependants_paths_map)
 
     tab = ' ' * spaces_count
     coder = partial(coder,
                     tab=tab,
                     namespace=namespace)
     code_blocks = map(coder, module_functions)
-    return autopep8.fix_code(''.join(code_blocks),
+    return autopep8.fix_code(''.join(chain(imports, code_blocks)),
                              options={'aggressive': True,
                                       'max_line_length': 79})
+
+
+def to_imports(dependants_paths: Dict[str, List[catalog.ObjectPath]]
+               ) -> Iterator[str]:
+    def is_path_relative(object_path: catalog.ObjectPath) -> bool:
+        return object_path.relative
+
+    for module_name, paths in dependants_paths.items():
+        relative_paths = list(filter(is_path_relative, paths))
+        if relative_paths:
+            objects_names = list(map(operator.attrgetter('object'),
+                                     relative_paths))
+            objects_names_str = join_with_wrapping(objects_names)
+            yield ('from {module} import {objects}\n'
+                   .format(module=module_name,
+                           objects=objects_names_str))
+        absolute_path = next(filterfalse(is_path_relative, paths), None)
+        if absolute_path is not None:
+            yield 'import {module}\n'.format(module=module_name)
+
+
+def objects_paths_by_modules_names(objects_paths: Iterable[catalog.ObjectPath]
+                                   ) -> Dict[str, List[catalog.ObjectPath]]:
+    result = defaultdict(list)
+    for object_path in objects_paths:
+        result[object_path.module].append(object_path)
+    return result
+
+
+def search_object_path(object_,
+                       *,
+                       namespace: namespaces.NamespaceType,
+                       dependent_objects: namespaces.NamespaceType
+                       ) -> catalog.ObjectPath:
+    try:
+        return namespaces.search_path(object_,
+                                      namespace=namespace)
+    except LookupError:
+        return namespaces.search_path(object_,
+                                      namespace=dependent_objects)
+
+
+def function_dependants(function: FunctionType) -> Iterator[Any]:
+    yield function
+    annotations = function_annotations(function)
+    yield from chain.from_iterable(map(annotator.walk,
+                                       annotations))
+
+
+def function_annotations(function: FunctionType
+                         ) -> Iterator[annotator.Annotation]:
+    signature = inspect.signature(function)
+    parameters = signature.parameters.values()
+    annotations = list(chain((parameter.annotation
+                              for parameter in parameters),
+                             [signature.return_annotation]))
+    yield from map(annotator.normalize, annotations)
 
 
 def generate_test_case(function: FunctionType,
