@@ -3,8 +3,7 @@ import os
 from itertools import filterfalse
 from typing import Iterable
 
-from .strings import (join_strings,
-                      wrap_with_quotes)
+from . import strings
 from .utils import is_python_module
 
 
@@ -14,7 +13,7 @@ def validate_paths(paths: Iterable[str]) -> None:
     if not non_existent_paths:
         return
 
-    non_existent_paths_str = join_strings(map(wrap_with_quotes,
+    non_existent_paths_str = strings.join(map(strings.wrap_with_quotes,
                                               non_existent_paths))
     err_msg = ('Next paths not found on file system:\n'
                '{paths}.'
@@ -27,7 +26,7 @@ def validate_modules_paths(paths: Iterable[str]) -> None:
 
     if invalid_paths:
         err_msg = ('Next paths are not valid Python modules:\n'
-                   '{paths}'.format(paths=join_strings(invalid_paths)))
+                   '{paths}'.format(paths=strings.join(invalid_paths)))
         raise OSError(err_msg)
 
 
@@ -37,7 +36,7 @@ def validate_modules(names: Iterable[str]) -> None:
     if not missing_modules:
         return
 
-    missing_modules_str = join_strings(map(wrap_with_quotes,
+    missing_modules_str = strings.join(map(strings.wrap_with_quotes,
                                            missing_modules))
     err_msg = ('Next modules not found:\n'
                '{modules}.'

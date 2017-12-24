@@ -8,8 +8,8 @@ from typing import (TypingMeta,
                     Tuple,
                     Collection)
 
-from liable import namespaces
-from liable.strings import join_strings
+from liable import (namespaces,
+                    strings)
 from .base import Annotation
 
 ELLIPSIS_STRING = '...'
@@ -76,7 +76,7 @@ class Union(Annotation):
                                            namespace=namespace)
         arguments_names = [argument.to_string(namespace)
                            for argument in self.arguments]
-        arguments_name = join_strings(arguments_names,
+        arguments_name = strings.join(arguments_names,
                                       sep=', ')
         return ('{base}[{arguments}]'
                 .format(base=base_name,
@@ -115,7 +115,7 @@ class Optional(Annotation):
                            for annotation in arguments]
         if len(arguments) > 1:
             arguments_names.append(str(None))
-        arguments_name = join_strings(arguments_names,
+        arguments_name = strings.join(arguments_names,
                                       sep=', ')
         return '{base}[{arguments}]'.format(base=base_name,
                                             arguments=arguments_name)
@@ -149,7 +149,7 @@ class Callable(Annotation):
                                            namespace=namespace)
         parameters_names = [parameter.to_string(namespace)
                             for parameter in self.parameters]
-        parameters_name = join_strings(parameters_names,
+        parameters_name = strings.join(parameters_names,
                                        sep=', ')
         return_type_name = self.return_type.to_string(namespace)
         if parameters_name == ELLIPSIS_STRING:
@@ -187,7 +187,7 @@ class Iterable(Annotation):
                                            namespace=namespace)
         elements_names = [argument.to_string(namespace)
                           for argument in self.elements]
-        elements_name = join_strings(elements_names,
+        elements_name = strings.join(elements_names,
                                      sep=', ')
         return ('{base}[{elements}]'
                 .format(base=base_name,

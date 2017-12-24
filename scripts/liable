@@ -27,9 +27,8 @@ from liable import (modules,
                     namespaces,
                     annotator,
                     files,
-                    catalog)
-from liable.strings import (join_strings,
-                            join_with_wrapping)
+                    catalog,
+                    strings)
 from liable.utils import is_python_module
 from liable.validators import (validate_paths,
                                validate_modules_paths)
@@ -202,7 +201,7 @@ def to_imports(dependants_paths: Dict[str, List[catalog.ObjectPath]]
         if relative_paths:
             objects_names = list(map(operator.attrgetter('object'),
                                      relative_paths))
-            objects_names_str = join_with_wrapping(objects_names)
+            objects_names_str = strings.join_with_wrapping(objects_names)
             yield ('from {module} import {objects}\n'
                    .format(module=module_name,
                            objects=objects_names_str))
@@ -260,13 +259,13 @@ def generate_test_case(function: FunctionType,
         annotation = annotator.normalize(annotation)
         return annotation.to_string(namespace)
 
-    test_parameters_str = join_strings(
+    test_parameters_str = strings.join(
             TEST_CASE_PARAMETER_TEMPLATE.format(
                     parameter=parameter.name,
                     annotation=to_name(parameter.annotation)
             )
             for parameter in function_parameters)
-    function_arguments_str = join_strings(
+    function_arguments_str = strings.join(
             FUNCTION_ARGUMENTS_TEMPLATES[parameter.kind].format(
                     parameter=parameter.name,
                     argument=parameter.name)
@@ -281,8 +280,8 @@ def generate_test_case(function: FunctionType,
             return RETURN_TYPE_CHECK_TEMPLATE
 
     statements = sorted(set(map(to_statement, return_annotation_bases)))
-    statement = join_with_wrapping(statements,
-                                   sep='\nor\n')
+    statement = strings.join_with_wrapping(statements,
+                                           sep='\nor\n')
     assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
 
     return_type = None

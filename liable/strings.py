@@ -5,9 +5,9 @@ from typing import (Any,
 STRINGS_SEPARATOR = ',\n'
 
 
-def join_strings(strings: Iterable[str],
-                 *,
-                 sep: str = STRINGS_SEPARATOR) -> str:
+def join(strings: Iterable[str],
+         *,
+         sep: str = STRINGS_SEPARATOR) -> str:
     return sep.join(strings)
 
 
