@@ -167,45 +167,26 @@ class Callable(Annotation):
         return self.origin.__extra__,
 
 
-class Iterable(Annotation):
+class PlainGeneric(Annotation):
     def __init__(self,
-                 origin: TypingMeta,
-                 elements: Collection[Annotation]):
+                 origin: TypingMeta):
         super().__init__(origin)
-        self.elements = elements
 
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
-        origin = self.origin
-
-        if namespaces.is_object_relative(origin,
-                                         namespace=namespace):
-            return namespaces.search_name(origin,
-                                          namespace=namespace)
-
-        base = origin.__origin__
-        base_name = namespaces.search_name(base,
-                                           namespace=namespace)
-        elements_names = [argument.to_string(namespace)
-                          for argument in self.elements]
-        elements_name = strings.join(elements_names,
-                                     sep=', ')
-        return ('{base}[{elements}]'
-                .format(base=base_name,
-                        elements=elements_name))
+        return namespaces.search_name(self.origin,
+                                      namespace=namespace)
 
     @property
-    def bases(self) -> Tuple[Type[collections.Iterable]]:
+    def bases(self) -> Tuple[Type]:
         return self.origin.__extra__,
 
 
-class Mapping(Annotation):
+class Generic(Annotation):
     def __init__(self,
                  origin: TypingMeta,
-                 keys: Annotation,
-                 values: Annotation):
+                 arguments: Collection[Annotation]):
         super().__init__(origin)
-        self.keys = keys
-        self.values = values
+        self.arguments = arguments
 
     def to_string(self, namespace: namespaces.NamespaceType) -> str:
         origin = self.origin
@@ -218,13 +199,14 @@ class Mapping(Annotation):
         base = origin.__origin__
         base_name = namespaces.search_name(base,
                                            namespace=namespace)
-        keys_name = self.keys.to_string(namespace)
-        values_name = self.values.to_string(namespace)
-        return ('{base}[{keys}, {values}]'
+        arguments_names = [argument.to_string(namespace)
+                           for argument in self.arguments]
+        arguments_name = strings.join(arguments_names,
+                                      sep=', ')
+        return ('{base}[{elements}]'
                 .format(base=base_name,
-                        keys=keys_name,
-                        values=values_name))
+                        elements=arguments_name))
 
     @property
-    def bases(self) -> Tuple[Type[collections.Mapping]]:
+    def bases(self) -> Tuple[Type[collections.Iterable]]:
         return self.origin.__extra__,

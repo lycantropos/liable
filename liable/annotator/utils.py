@@ -11,9 +11,8 @@ from liable.utils import to_name
 from . import annotations
 from .base import Annotation
 from .detectors import (is_typing,
+                        is_generic,
                         is_callable,
-                        is_iterable,
-                        is_mapping,
                         is_none_annotation)
 
 NoneType = type(None)
@@ -51,23 +50,7 @@ def to_annotation(annotation: Any) -> Annotation:
         return annotations.Union(origin=annotation,
                                  arguments=arguments_annotations)
 
-    if is_mapping(annotation):
-        try:
-            keys_annotation, values_annotation = annotation.__args__
-        except ValueError:
-            return annotations.PlainAnnotation(annotation)
-        else:
-            return annotations.Mapping(origin=annotation,
-                                       keys=to_annotation(keys_annotation),
-                                       values=to_annotation(values_annotation))
-    elif is_iterable(annotation):
-        elements_annotations = annotation.__args__
-        if not elements_annotations:
-            return annotations.PlainAnnotation(annotation)
-        return annotations.Iterable(origin=annotation,
-                                    elements=list(map(to_annotation,
-                                                      elements_annotations)))
-    elif is_callable(annotation):
+    if is_callable(annotation):
         signature_annotations = annotation.__args__
         if not signature_annotations:
             return annotations.PlainAnnotation(annotation)
@@ -76,6 +59,12 @@ def to_annotation(annotation: Any) -> Annotation:
                 origin=annotation,
                 parameters=list(map(to_annotation, parameters_annotations)),
                 return_type=to_annotation(return_type_annotation))
+    elif is_generic(annotation):
+        arguments = annotation.__args__
+        if not arguments:
+            return annotations.PlainGeneric(annotation)
+        return annotations.Generic(origin=annotation,
+                                   arguments=arguments)
 
     return annotations.PlainAnnotation(annotation)
 
@@ -88,18 +77,16 @@ def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
 
     if isinstance(annotation, (annotations.Raw,
                                annotations.PlainAnnotation,
-                               annotations.Any)):
+                               annotations.Any,
+                               annotations.PlainGeneric)):
         yield annotation.origin
+        yield from annotation.bases
     elif isinstance(annotation, (annotations.Union, annotations.Optional)):
         yield annotation.origin.__origin__
         yield from chain.from_iterable(map(walk, annotation.arguments))
-    elif isinstance(annotation, annotations.Iterable):
+    elif isinstance(annotation, annotations.Generic):
         yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk, annotation.elements))
-    elif isinstance(annotation, annotations.Mapping):
-        yield annotation.origin.__origin__
-        yield from walk(annotation.keys)
-        yield from walk(annotation.values)
+        yield from chain.from_iterable(map(walk, annotation.arguments))
     elif isinstance(annotation, annotations.Callable):
         yield annotation.origin.__origin__
         yield from chain.from_iterable(map(walk, annotation.parameters))
@@ -113,7 +100,7 @@ def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
         raise TypeError(err_msg)
 
 
-def none_type_to_none(object_: Any) -> Any:
+def none_type_to_none(object_: Any) -> Type:
     if object_ is NoneType:
         return None
     return object_
