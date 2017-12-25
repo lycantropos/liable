@@ -29,6 +29,7 @@ from liable import (modules,
                     files,
                     catalog,
                     strings)
+from liable.annotator.detectors import is_generic
 from liable.utils import is_python_module
 from liable.validators import (validate_paths,
                                validate_modules_paths)
@@ -242,9 +243,13 @@ def function_annotations(function: FunctionType
                          ) -> Iterator[annotator.Annotation]:
     signature = inspect.signature(function)
     parameters = signature.parameters.values()
+    return_annotation = signature.return_annotation
+    if is_generic(return_annotation):
+        # we're checking return type by base instead of plain annotation
+        return_annotation = return_annotation.__extra__
     annotations = list(chain((parameter.annotation
                               for parameter in parameters),
-                             [signature.return_annotation]))
+                             [return_annotation]))
     yield from map(annotator.normalize, annotations)
 
 
