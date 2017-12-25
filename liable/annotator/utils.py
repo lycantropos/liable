@@ -101,7 +101,7 @@ def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
         raise TypeError(err_msg)
 
 
-def none_type_to_none(object_: Any) -> Type:
+def none_type_to_none(object_: Any) -> Any:
     if object_ is NoneType:
         return None
     return object_
