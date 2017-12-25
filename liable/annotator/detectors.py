@@ -11,14 +11,6 @@ def is_callable(object_: Type) -> bool:
     return issubclass(object_, collections.Callable)
 
 
-def is_iterable(object_: Type) -> bool:
-    return issubclass(object_, collections.Iterable)
-
-
-def is_mapping(object_: Type) -> bool:
-    return issubclass(object_, collections.Mapping)
-
-
 def is_none_annotation(annotation: Annotation) -> bool:
     return annotation.bases == (None,)
 
