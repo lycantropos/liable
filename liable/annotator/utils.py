@@ -63,8 +63,9 @@ def to_annotation(annotation: Any) -> Annotation:
         arguments = annotation.__args__
         if not arguments:
             return annotations.PlainGeneric(annotation)
+        arguments_annotations = list(map(to_annotation, arguments))
         return annotations.Generic(origin=annotation,
-                                   arguments=arguments)
+                                   arguments=arguments_annotations)
 
     return annotations.PlainAnnotation(annotation)
 
