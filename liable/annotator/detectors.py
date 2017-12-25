@@ -27,3 +27,7 @@ def is_typing(object_: Any) -> bool:
     return (isinstance(type(object_), TypingMeta)
             or
             isinstance(object_, GenericMeta))
+
+
+def is_generic(object_: Any) -> bool:
+    return isinstance(object_, GenericMeta) and object_.__extra__ is not None
