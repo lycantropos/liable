@@ -141,7 +141,6 @@ def generate_tests(spaces_count: int,
 
 def generate_module_tests_code(module_path: str,
                                *,
-
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int,
                                coder: CoderType,
