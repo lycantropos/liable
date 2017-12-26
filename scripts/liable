@@ -203,17 +203,6 @@ def objects_paths_by_modules_names(objects_paths: Iterable[catalog.ObjectPath]
     return result
 
 
-def search_object_path(object_,
-                       *,
-                       namespace: namespaces.NamespaceType,
-                       dependent_objects: namespaces.NamespaceType
-                       ) -> catalog.ObjectPath:
-    try:
-        return namespaces.search_path(object_,
-                                      namespace=namespace)
-    except LookupError:
-        return namespaces.search_path(object_,
-                                      namespace=dependent_objects)
 
 
 def generate_test_case(function: FunctionType,
