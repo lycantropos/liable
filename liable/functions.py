@@ -1,18 +1,44 @@
 import inspect
-from itertools import chain
+from functools import partial
+from itertools import (chain,
+                       filterfalse)
 from types import FunctionType
 from typing import (Any,
+                    Iterable,
                     Iterator,
                     NamedTuple,
                     Dict)
 
-from . import annotator
+from . import (annotator,
+               namespaces,
+               catalog)
 from .annotator.detectors import is_generic
 
 
 class Signature(NamedTuple):
     parameters: Dict[str, annotator.Annotation]
     return_type: annotator.Annotation
+
+
+def dependants_paths(functions: Iterable[FunctionType],
+                     *,
+                     built_ins: namespaces.NamespaceType,
+                     namespace: namespaces.NamespaceType,
+                     generic_return_type: bool
+                     ) -> Iterator[catalog.ObjectPath]:
+    dependencies_detector = partial(dependencies,
+                                    generic_return_type=generic_return_type)
+    signatures_dependants = chain.from_iterable(map(dependencies_detector,
+                                                    functions))
+    object_path_seeker = partial(namespaces.search_path,
+                                 namespace=namespace)
+    result = set(chain(map(object_path_seeker,
+                           signatures_dependants)))
+
+    def is_built_in_path(object_path: catalog.ObjectPath) -> bool:
+        return object_path in built_ins
+
+    yield from filterfalse(is_built_in_path, result)
 
 
 def dependencies(function: FunctionType,

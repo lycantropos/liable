@@ -158,22 +158,10 @@ def generate_tests_cases(module_path: str,
                         for object_ in module_objects
                         if inspect.isfunction(object_)]
 
-    dependent_objects = namespaces.dependent_objects(module)
-    dependent_objects.update(built_ins)
-    dependencies_detector = partial(functions.dependencies,
-                                    generic_return_type=False)
-    signatures_dependants = chain.from_iterable(map(dependencies_detector,
-                                                    module_functions))
-    object_path_seeker = partial(search_object_path,
-                                 namespace=namespace,
-                                 dependent_objects=dependent_objects)
-    dependants_paths = set(chain(map(object_path_seeker,
-                                     signatures_dependants)))
-
-    def is_built_in_path(object_path: catalog.ObjectPath) -> bool:
-        return object_path in built_ins
-
-    dependants_paths = filterfalse(is_built_in_path, dependants_paths)
+    dependants_paths = functions.dependants_paths(module_functions,
+                                                  built_ins=built_ins,
+                                                  namespace=namespace,
+                                                  generic_return_type=False)
     dependants_paths = objects_paths_by_modules_names(dependants_paths)
 
     imports = to_imports(dependants_paths)
