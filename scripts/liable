@@ -144,11 +144,17 @@ def generate_tests_cases(module_path: str,
     namespace.update(built_ins)
 
     if collections not in namespace.values():
-        namespace[collections.__name__] = collections
+        namespace[catalog.ObjectPath(module=collections.__name__,
+                                     object=None,
+                                     relative=False)] = collections
     if Any not in namespace.values():
-        namespace['Any'] = Any
+        namespace[catalog.ObjectPath(module='typing',
+                                     object='Any',
+                                     relative=True)] = Any
     if Optional not in namespace.values():
-        namespace['Optional'] = Optional
+        namespace[catalog.ObjectPath(module='typing',
+                                     object='Optional',
+                                     relative=True)] = Optional
 
     module_objects = [content
                       for content in namespace.values()
