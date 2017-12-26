@@ -1,14 +1,19 @@
 import inspect
 import os
 import sys
-from collections import namedtuple
-from typing import (Iterable,
+from typing import (Optional,
+                    Iterable,
+                    NamedTuple,
                     List)
 
 SEPARATOR = '.'
 
 
-class ObjectPath(namedtuple('ObjectPath', ['module', 'object', 'relative'])):
+class ObjectPath(NamedTuple):
+    module: Optional[str]
+    object: Optional[str]
+    relative: bool
+
     def __str__(self):
         if self.object is None:
             return self.module
