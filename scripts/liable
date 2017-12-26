@@ -180,9 +180,9 @@ def generate_module_tests_code(module_path: str,
         return object_path in built_ins
 
     dependants_paths = filterfalse(is_built_in_path, dependants_paths)
-    dependants_paths_map = objects_paths_by_modules_names(dependants_paths)
+    dependants_paths = objects_paths_by_modules_names(dependants_paths)
 
-    imports = to_imports(dependants_paths_map)
+    imports = to_imports(dependants_paths)
 
     tab = ' ' * spaces_count
     coder = partial(coder,
