@@ -52,7 +52,7 @@ def main() -> None:
                 nargs=-1)
 def search_modules(recursive: bool,
                    ignore_patterns_path: str,
-                   paths: str) -> None:
+                   paths: List[str]) -> None:
     """Searches Python modules in paths."""
     if not paths:
         err_msg = 'No paths specified.'
