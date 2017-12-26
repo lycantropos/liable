@@ -128,7 +128,8 @@ def generate_tests(spaces_count: int,
     test_cases_generator = partial(generate_module_tests_code,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count,
-                                   coder=generate_test_case)
+                                   coder=generate_test_case,
+                                   generic_return_type=False)
     for module_path in modules_paths:
         try:
             test_cases = test_cases_generator(module_path)
@@ -143,7 +144,8 @@ def generate_module_tests_code(module_path: str,
 
                                built_ins: namespaces.NamespaceType,
                                spaces_count: int,
-                               coder: CoderType) -> str:
+                               coder: CoderType,
+                               generic_return_type: bool) -> str:
     module = modules.from_path(module_path)
 
     namespace = namespaces.from_module(module)
@@ -167,7 +169,7 @@ def generate_module_tests_code(module_path: str,
     dependent_objects = namespaces.dependent_objects(module)
     dependent_objects.update(built_ins)
     dependencies_detector = partial(functions.dependencies,
-                                    only_return_type_bases=True)
+                                    generic_return_type=generic_return_type)
     signatures_dependants = chain.from_iterable(map(dependencies_detector,
                                                     module_functions))
     object_path_seeker = partial(search_object_path,

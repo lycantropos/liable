@@ -17,13 +17,13 @@ class Signature(NamedTuple):
 
 def dependencies(function: FunctionType,
                  *,
-                 only_return_type_bases: bool) -> Iterator[Any]:
+                 generic_return_type: bool) -> Iterator[Any]:
     yield function
     function_signature = signature(function)
     parameters = function_signature.parameters
     yield from chain.from_iterable(map(annotator.walk, parameters.values()))
     return_type = function_signature.return_type
-    if only_return_type_bases and is_generic(return_type.origin):
+    if not generic_return_type and is_generic(return_type.origin):
         yield from return_type.bases
         return
     yield from annotator.walk(return_type)
