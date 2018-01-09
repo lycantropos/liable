@@ -20,54 +20,54 @@ NoneType = type(None)
 ANNOTATIONS_REPLACEMENTS = {inspect._empty: Any}
 
 
-def normalize(annotation: Type) -> Annotation:
-    return to_annotation(ANNOTATIONS_REPLACEMENTS.get(annotation,
-                                                      annotation))
+def normalize(type_: Type) -> Annotation:
+    return to_annotation(ANNOTATIONS_REPLACEMENTS.get(type_,
+                                                      type_))
 
 
-def to_annotation(annotation: Any) -> Annotation:
-    if not is_typing(annotation):
-        return annotations.Raw(annotation)
+def to_annotation(object_: Any) -> Annotation:
+    if not is_typing(object_):
+        return annotations.Raw(object_)
 
-    if annotation is Any:
+    if object_ is Any:
         return annotations.Any()
 
     try:
-        origin = annotation.__origin__
+        origin = object_.__origin__
     except AttributeError:
         return annotations.Raw(object)
 
     if origin is Union:
-        annotation.__args__ = tuple(map(none_type_to_none,
-                                        annotation.__args__))
-        arguments = annotation.__args__
+        object_.__args__ = tuple(map(none_type_to_none,
+                                     object_.__args__))
+        arguments = object_.__args__
         arguments_annotations = list(map(to_annotation, arguments))
         if None in arguments:
             arguments_annotations = list(filterfalse(is_none_annotation,
                                                      arguments_annotations))
-            return annotations.Optional(origin=annotation,
+            return annotations.Optional(origin=object_,
                                         arguments=arguments_annotations)
-        return annotations.Union(origin=annotation,
+        return annotations.Union(origin=object_,
                                  arguments=arguments_annotations)
 
-    if is_callable(annotation):
-        signature_annotations = annotation.__args__
+    if is_callable(object_):
+        signature_annotations = object_.__args__
         if not signature_annotations:
-            return annotations.PlainAnnotation(annotation)
+            return annotations.PlainAnnotation(object_)
         *parameters_annotations, return_type_annotation = signature_annotations
         return annotations.Callable(
-                origin=annotation,
+                origin=object_,
                 parameters=list(map(to_annotation, parameters_annotations)),
                 return_type=to_annotation(return_type_annotation))
-    elif is_generic(annotation):
-        arguments = annotation.__args__
+    elif is_generic(object_):
+        arguments = object_.__args__
         if not arguments:
-            return annotations.PlainGeneric(annotation)
+            return annotations.PlainGeneric(object_)
         arguments_annotations = list(map(to_annotation, arguments))
-        return annotations.Generic(origin=annotation,
+        return annotations.Generic(origin=object_,
                                    arguments=arguments_annotations)
 
-    return annotations.PlainAnnotation(annotation)
+    return annotations.PlainAnnotation(object_)
 
 
 def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
