@@ -6,7 +6,8 @@ import os
 from collections import defaultdict
 from functools import partial
 from itertools import (filterfalse,
-                       chain)
+                       chain,
+                       starmap)
 from types import FunctionType
 from typing import (Any,
                     Optional,
@@ -165,7 +166,8 @@ def generate_test_cases(module_functions: Iterable[FunctionType],
                                                   namespace=namespace,
                                                   generic_return_type=False)
     dependants_paths = objects_paths_by_modules_names(dependants_paths)
-    imports = to_imports(dependants_paths)
+    imports = chain.from_iterable(starmap(to_imports,
+                                          dependants_paths.values()))
     tab = ' ' * spaces_count
     test_case_factory = partial(generate_test_case,
                                 tab=tab,
@@ -178,23 +180,34 @@ def generate_test_cases(module_functions: Iterable[FunctionType],
                                       'max_line_length': 79})
 
 
-def to_imports(dependants_paths: Dict[str, List[catalog.ObjectPath]]
-               ) -> Iterator[str]:
+
+def to_imports(*module_paths: catalog.ObjectPath) -> Iterator[str]:
+    modules_names = set(map(operator.attrgetter('module'), module_paths))
+    try:
+        module_name, = modules_names
+    except ValueError as err:
+        if modules_names:
+            err_msg = ('Found modules paths for different modules: '
+                       '{modules}.'
+                       .format(modules=strings.join(modules_names)))
+        else:
+            err_msg = 'No modules paths found.'
+        raise ValueError(err_msg) from err
+
     def is_absolute(object_path: catalog.ObjectPath) -> bool:
         return object_path.type == catalog.PathType.absolute
 
-    for module_name, paths in dependants_paths.items():
-        non_absolute_paths = list(filterfalse(is_absolute, paths))
-        if non_absolute_paths:
-            objects_names = list(map(operator.attrgetter('object'),
-                                     non_absolute_paths))
-            objects_names_str = strings.join_with_wrapping(objects_names)
-            yield ('from {module} import {objects}\n'
-                   .format(module=module_name,
-                           objects=objects_names_str))
-        absolute_path = next(filter(is_absolute, paths), None)
-        if absolute_path is not None:
-            yield 'import {module}\n'.format(module=module_name)
+    non_absolute_paths = list(filterfalse(is_absolute, module_paths))
+    if non_absolute_paths:
+        objects_names = list(map(operator.attrgetter('object'),
+                                 non_absolute_paths))
+        objects_names_str = strings.join_with_wrapping(objects_names)
+        yield ('from {module} import {objects}\n'
+               .format(module=module_name,
+                       objects=objects_names_str))
+    absolute_path = next(filter(is_absolute, module_paths), None)
+    if absolute_path is not None:
+        yield 'import {module}\n'.format(module=module_name)
 
 
 def objects_paths_by_modules_names(objects_paths: Iterable[catalog.ObjectPath]
