@@ -99,6 +99,16 @@ RETURN_TYPE_CHECK_TEMPLATE = 'isinstance({result}, {return_type})'
 NONE_RETURN_TYPE_CHECK_TEMPLATE = '{result} is None'
 ASSERTION_TEMPLATE = 'assert {statement}\n'
 
+utilities = {catalog.ObjectPath(module=collections.__name__,
+                                object=None,
+                                type=catalog.PathType.absolute): collections,
+             catalog.ObjectPath(module=Any.__module__,
+                                object='Any',
+                                type=catalog.PathType.relative): Any,
+             catalog.ObjectPath(module=Optional.__module__,
+                                object='Optional',
+                                type=catalog.PathType.relative): Optional}
+
 
 @main.command(name='tests')
 @click.option('--spaces-count', '-s',
@@ -123,63 +133,47 @@ def generate_tests(spaces_count: int,
         raise click.BadParameter(err) from err
 
     built_ins = namespaces.built_ins()
-    test_cases_generator = partial(generate_tests_cases,
+    add_utilities = partial(merge_mappings, utilities)
+    modules_namespaces = map(namespaces.from_module,
+                             map(modules.from_path, modules_paths))
+    modules_namespaces = map(add_utilities, modules_namespaces)
+    test_cases_generator = partial(generate_test_cases,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count)
-    for module_path in modules_paths:
+
+    for namespace in modules_namespaces:
+        module_objects = [content
+                          for path, content in namespace.items()
+                          if path.type == catalog.PathType.inner]
+        module_functions = list(filter(inspect.isfunction, module_objects))
         try:
-            test_cases = test_cases_generator(module_path)
+            test_cases = test_cases_generator(module_functions,
+                                              namespace=namespace)
         except ImportError as err:
             raise click.BadParameter(err) from err
 
         click.echo(test_cases)
 
 
-def generate_tests_cases(module_path: str,
-                         *,
-                         built_ins: namespaces.NamespaceType,
-                         spaces_count: int) -> str:
-    module = modules.from_path(module_path)
-
-    namespace = namespaces.from_module(module)
-    namespace.update(built_ins)
-
-    if collections not in namespace.values():
-        namespace[catalog.ObjectPath(module=collections.__name__,
-                                     object=None,
-                                     type=catalog.PathType.absolute)] = collections
-    if Any not in namespace.values():
-        namespace[catalog.ObjectPath(module='typing',
-                                     object='Any',
-                                     type=catalog.PathType.relative)] = Any
-    if Optional not in namespace.values():
-        namespace[catalog.ObjectPath(module='typing',
-                                     object='Optional',
-                                     type=catalog.PathType.relative)] = Optional
-
-    module_objects = [content
-                      for content in namespace.values()
-                      if modules.is_object_from_module(content,
-                                                       module=module)]
-    module_functions = [object_
-                        for object_ in module_objects
-                        if inspect.isfunction(object_)]
-
+def generate_test_cases(module_functions: Iterable[FunctionType],
+                        *,
+                        built_ins: namespaces.NamespaceType,
+                        namespace: namespaces.NamespaceType,
+                        spaces_count: int) -> str:
     dependants_paths = functions.dependants_paths(module_functions,
                                                   built_ins=built_ins,
                                                   namespace=namespace,
                                                   generic_return_type=False)
     dependants_paths = objects_paths_by_modules_names(dependants_paths)
-
     imports = to_imports(dependants_paths)
-
     tab = ' ' * spaces_count
     test_case_factory = partial(generate_test_case,
                                 tab=tab,
                                 built_ins=built_ins,
                                 namespace=namespace)
-    code_blocks = map(test_case_factory, module_functions)
-    return autopep8.fix_code(''.join(chain(imports, code_blocks)),
+    tests_cases = map(test_case_factory, module_functions)
+    code_blocks = chain(imports, tests_cases)
+    return autopep8.fix_code(''.join(code_blocks),
                              options={'aggressive': True,
                                       'max_line_length': 79})
 
