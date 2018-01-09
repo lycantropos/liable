@@ -82,8 +82,6 @@ def to_object_path(statement: ImportType,
 def import_absolutizer(module_path: str
                        ) -> Callable[[ast.ImportFrom], ast.ImportFrom]:
     """Returns operator which makes ``ast.ImportFrom`` statements absolute."""
-    module_directory_path = os.path.dirname(module_path)
-    module_directory_relative_path = catalog.to_relative(module_directory_path)
 
     def to_absolute(statement: ImportType) -> ImportType:
         if isinstance(statement, ast.Import):
@@ -94,6 +92,9 @@ def import_absolutizer(module_path: str
                               names=statement.names,
                               lineno=statement.lineno,
                               col_offset=statement.col_offset)
+
+    module_directory_path = os.path.dirname(module_path)
+    module_directory_relative_path = catalog.to_relative(module_directory_path)
 
     def to_module_name(statement: ast.ImportFrom) -> str:
         module = statement.module
