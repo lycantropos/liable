@@ -13,23 +13,16 @@ from typing import (Any,
 from . import (catalog,
                modules,
                arboretum)
-from .utils import to_name
+from .utils import (to_name,
+                    merge_mappings)
 from .validators import validate_modules
 
 NamespaceType = Dict[catalog.ObjectPath, Any]
 
 
 def from_module(module: ModuleType) -> NamespaceType:
-    module_name = module.__name__
-    result = {catalog.ObjectPath(module=module_name,
-                                 object=object_name,
-                                 type=catalog.PathType.relative): content
-              for object_name, content in vars(module).items()
-              if modules.is_object_from_module(content,
-                                               module=module)}
-    objects = dependent_objects(module)
-    result.update(objects)
-    return result
+    return merge_mappings(dependent_objects(module),
+                          inner_objects(module))
 
 
 def built_ins(module: ModuleType = builtins) -> NamespaceType:
