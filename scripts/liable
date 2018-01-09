@@ -29,7 +29,8 @@ from liable import (modules,
                     catalog,
                     functions,
                     strings)
-from liable.utils import is_python_module
+from liable.utils import (is_python_module,
+                          merge_mappings)
 from liable.validators import (validate_paths,
                                validate_modules_paths)
 
@@ -175,6 +176,7 @@ def generate_tests_cases(module_path: str,
     tab = ' ' * spaces_count
     test_case_factory = partial(generate_test_case,
                                 tab=tab,
+                                built_ins=built_ins,
                                 namespace=namespace)
     code_blocks = map(test_case_factory, module_functions)
     return autopep8.fix_code(''.join(chain(imports, code_blocks)),
@@ -212,9 +214,11 @@ def objects_paths_by_modules_names(objects_paths: Iterable[catalog.ObjectPath]
 def generate_test_case(function: FunctionType,
                        *,
                        tab: str,
+                       built_ins: namespaces.NamespaceType,
                        namespace: namespaces.NamespaceType) -> str:
     signature = inspect.signature(function)
     function_parameters = signature.parameters.values()
+    namespace = merge_mappings(built_ins, namespace)
 
     def to_name(annotation: Type) -> str:
         annotation = annotator.normalize(annotation)

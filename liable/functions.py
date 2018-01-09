@@ -13,6 +13,7 @@ from . import (annotator,
                namespaces,
                catalog)
 from .annotator.detectors import is_generic
+from .utils import merge_mappings
 
 
 class Signature(NamedTuple):
@@ -31,7 +32,8 @@ def dependants_paths(functions: Iterable[FunctionType],
     signatures_dependants = chain.from_iterable(map(dependencies_detector,
                                                     functions))
     object_path_seeker = partial(namespaces.search_path,
-                                 namespace=namespace)
+                                 namespace=merge_mappings(built_ins,
+                                                          namespace))
     result = set(chain(map(object_path_seeker,
                            signatures_dependants)))
 
