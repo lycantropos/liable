@@ -23,7 +23,7 @@ def from_module(module: ModuleType) -> NamespaceType:
     module_name = module.__name__
     result = {catalog.ObjectPath(module=module_name,
                                  object=object_name,
-                                 relative=True): content
+                                 type=catalog.PathType.relative): content
               for object_name, content in vars(module).items()
               if modules.is_object_from_module(content,
                                                module=module)}
@@ -37,7 +37,7 @@ def built_ins(module: ModuleType = builtins) -> NamespaceType:
     module_map['...'] = module_map.pop('Ellipsis')
     return {catalog.ObjectPath(object=name,
                                module=None,
-                               relative=True): content
+                               type=catalog.PathType.inner): content
             for name, content in module_map.items()}
 
 
@@ -46,7 +46,7 @@ def search_name(object_: Any,
                 namespace: NamespaceType) -> str:
     path = search_path(object_,
                        namespace=namespace)
-    if path.relative:
+    if path.type in catalog.non_absolute_paths:
         return path.object
     return str(path)
 
@@ -103,7 +103,7 @@ def search_absolute_objects(object_: Any,
         if content is object_:
             yield catalog.ObjectPath(module=module_name,
                                      object=path.object,
-                                     relative=False)
+                                     type=catalog.PathType.absolute)
 
 
 def namespace_modules(namespace: NamespaceType

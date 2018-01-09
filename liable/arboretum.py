@@ -71,8 +71,11 @@ def to_object_path(statement: ImportType,
                                               names))
         modules_names = chain(names, sup_modules)
 
+    path_type = (catalog.PathType.relative
+                 if objects_are_relative
+                 else catalog.PathType.absolute)
     object_path_factory = partial(catalog.ObjectPath,
-                                  relative=objects_are_relative)
+                                  type=path_type)
     yield from starmap(object_path_factory, zip(modules_names, objects_names))
 
 

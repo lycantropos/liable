@@ -146,15 +146,15 @@ def generate_tests_cases(module_path: str,
     if collections not in namespace.values():
         namespace[catalog.ObjectPath(module=collections.__name__,
                                      object=None,
-                                     relative=False)] = collections
+                                     type=catalog.PathType.absolute)] = collections
     if Any not in namespace.values():
         namespace[catalog.ObjectPath(module='typing',
                                      object='Any',
-                                     relative=True)] = Any
+                                     type=catalog.PathType.relative)] = Any
     if Optional not in namespace.values():
         namespace[catalog.ObjectPath(module='typing',
                                      object='Optional',
-                                     relative=True)] = Optional
+                                     type=catalog.PathType.relative)] = Optional
 
     module_objects = [content
                       for content in namespace.values()
@@ -184,19 +184,19 @@ def generate_tests_cases(module_path: str,
 
 def to_imports(dependants_paths: Dict[str, List[catalog.ObjectPath]]
                ) -> Iterator[str]:
-    def is_path_relative(object_path: catalog.ObjectPath) -> bool:
-        return object_path.relative
+    def is_absolute(object_path: catalog.ObjectPath) -> bool:
+        return object_path.type == catalog.PathType.absolute
 
     for module_name, paths in dependants_paths.items():
-        relative_paths = list(filter(is_path_relative, paths))
-        if relative_paths:
+        non_absolute_paths = list(filterfalse(is_absolute, paths))
+        if non_absolute_paths:
             objects_names = list(map(operator.attrgetter('object'),
-                                     relative_paths))
+                                     non_absolute_paths))
             objects_names_str = strings.join_with_wrapping(objects_names)
             yield ('from {module} import {objects}\n'
                    .format(module=module_name,
                            objects=objects_names_str))
-        absolute_path = next(filterfalse(is_path_relative, paths), None)
+        absolute_path = next(filter(is_absolute, paths), None)
         if absolute_path is not None:
             yield 'import {module}\n'.format(module=module_name)
 
@@ -207,8 +207,6 @@ def objects_paths_by_modules_names(objects_paths: Iterable[catalog.ObjectPath]
     for object_path in objects_paths:
         result[object_path.module].append(object_path)
     return result
-
-
 
 
 def generate_test_case(function: FunctionType,

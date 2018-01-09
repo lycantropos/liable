@@ -1,3 +1,4 @@
+import enum
 import inspect
 import os
 import sys
@@ -9,10 +10,20 @@ from typing import (Optional,
 SEPARATOR = '.'
 
 
+class PathType(enum.IntEnum):
+    inner = 0
+    absolute = 1
+    relative = 2
+
+
+imports_paths = {PathType.absolute, PathType.relative}
+non_absolute_paths = {PathType.inner, PathType.relative}
+
+
 class ObjectPath(NamedTuple):
     module: Optional[str]
     object: Optional[str]
-    relative: bool
+    type: PathType
 
     def __str__(self):
         if self.object is None:
