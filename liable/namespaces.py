@@ -70,6 +70,16 @@ def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
                    map(objects_seeker, objects_paths))
 
 
+def inner_objects(module: ModuleType) -> NamespaceType:
+    module_name = module.__name__
+    return {catalog.ObjectPath(module=module_name,
+                               object=object_name,
+                               type=catalog.PathType.inner): content
+            for object_name, content in vars(module).items()
+            if modules.is_object_from_module(content,
+                                             module=module)}
+
+
 def search_name(object_: Any,
                 *,
                 namespace: NamespaceType) -> str:
