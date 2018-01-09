@@ -97,15 +97,15 @@ def import_absolutizer(module_path: str
     module_directory_relative_path = catalog.to_relative(module_directory_path)
 
     def to_module_name(statement: ast.ImportFrom) -> str:
-        module = statement.module
+        result = statement.module
         if is_import_relative(statement):
             jumps = (os.pardir + os.sep) * (statement.level - 1)
             module_path = os.path.join(module_directory_relative_path,
                                        jumps,
-                                       module or '')
+                                       result or '')
             module_path = os.path.normpath(module_path)
-            module = catalog.to_import(module_path)
-        return module
+            result = catalog.to_import(module_path)
+        return result
 
     return to_absolute
 
