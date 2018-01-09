@@ -165,7 +165,7 @@ def generate_test_cases(module_functions: Iterable[FunctionType],
                                                   built_ins=built_ins,
                                                   namespace=namespace,
                                                   generic_return_type=False)
-    dependants_paths = objects_paths_by_modules_names(dependants_paths)
+    dependants_paths = modules_objects_paths(dependants_paths)
     imports = chain.from_iterable(starmap(to_imports,
                                           dependants_paths.values()))
     tab = ' ' * spaces_count
@@ -210,8 +210,8 @@ def to_imports(*module_paths: catalog.ObjectPath) -> Iterator[str]:
         yield 'import {module}\n'.format(module=module_name)
 
 
-def objects_paths_by_modules_names(objects_paths: Iterable[catalog.ObjectPath]
-                                   ) -> Dict[str, List[catalog.ObjectPath]]:
+def modules_objects_paths(objects_paths: Iterable[catalog.ObjectPath]
+                          ) -> Dict[str, List[catalog.ObjectPath]]:
     result = defaultdict(list)
     for object_path in objects_paths:
         result[object_path.module].append(object_path)
