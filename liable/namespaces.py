@@ -41,6 +41,35 @@ def built_ins(module: ModuleType = builtins) -> NamespaceType:
             for name, content in module_map.items()}
 
 
+def dependent_objects(module: ModuleType) -> NamespaceType:
+    if modules.is_built_in(module):
+        return {}
+    objects_paths = list(dependent_objects_paths(module))
+    return dict(load_dependent_objects(objects_paths))
+
+
+def dependent_objects_paths(module: ModuleType
+                            ) -> Iterator[catalog.ObjectPath]:
+    tree = arboretum.from_module(module)
+    imports = filter(arboretum.is_import_statement, tree.body)
+    module_path = module.__file__
+    relative_import_to_absolute = arboretum.import_absolutizer(module_path)
+    imports = map(relative_import_to_absolute, imports)
+    yield from chain.from_iterable(map(arboretum.to_object_path, imports))
+
+
+def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
+                           ) -> Iterator[Tuple[catalog.ObjectPath, Any]]:
+    dependencies_names = set(map(operator.attrgetter('module'), objects_paths))
+    validate_modules(dependencies_names)
+    dependencies = dict(zip(dependencies_names,
+                            map(modules.from_name, dependencies_names)))
+    objects_seeker = partial(modules.search,
+                             modules=dependencies)
+    yield from zip(objects_paths,
+                   map(objects_seeker, objects_paths))
+
+
 def search_name(object_: Any,
                 *,
                 namespace: NamespaceType) -> str:
@@ -111,32 +140,3 @@ def namespace_modules(namespace: NamespaceType
     for path, content in namespace.items():
         if inspect.ismodule(content):
             yield path, content
-
-
-def dependent_objects(module: ModuleType) -> NamespaceType:
-    if modules.is_built_in(module):
-        return {}
-    objects_paths = list(dependent_objects_paths(module))
-    return dict(load_dependent_objects(objects_paths))
-
-
-def dependent_objects_paths(module: ModuleType
-                            ) -> Iterator[catalog.ObjectPath]:
-    tree = arboretum.from_module(module)
-    imports = filter(arboretum.is_import_statement, tree.body)
-    module_path = module.__file__
-    relative_import_to_absolute = arboretum.import_absolutizer(module_path)
-    imports = map(relative_import_to_absolute, imports)
-    yield from chain.from_iterable(map(arboretum.to_object_path, imports))
-
-
-def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
-                           ) -> Iterator[Tuple[catalog.ObjectPath, Any]]:
-    dependencies_names = set(map(operator.attrgetter('module'), objects_paths))
-    validate_modules(dependencies_names)
-    dependencies = dict(zip(dependencies_names,
-                            map(modules.from_name, dependencies_names)))
-    objects_seeker = partial(modules.search,
-                             modules=dependencies)
-    yield from zip(objects_paths,
-                   map(objects_seeker, objects_paths))
