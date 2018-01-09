@@ -1,5 +1,9 @@
+import operator
 import os
-from typing import Any
+from itertools import chain
+from typing import (Any,
+                    Hashable,
+                    Mapping)
 
 from . import arboretum
 
@@ -27,3 +31,8 @@ def is_python_module(path: str) -> bool:
         return False
     else:
         return True
+
+
+def merge_mappings(*mappings: Mapping[Hashable, Any]) -> dict:
+    items = chain.from_iterable(map(operator.methodcaller('items'), mappings))
+    return dict(items)
