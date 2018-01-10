@@ -7,8 +7,8 @@ from typing import (TypingMeta,
 from .base import Annotation
 
 
-def is_callable(object_: Type) -> bool:
-    return issubclass(object_, collections.Callable)
+def is_callable(type_: Type) -> bool:
+    return issubclass(type_, collections.Callable)
 
 
 def is_none_annotation(annotation: Annotation) -> bool:
