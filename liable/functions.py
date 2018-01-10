@@ -16,6 +16,12 @@ from . import (annotator,
 from .annotator.detectors import is_generic
 from .utils import merge_mappings
 
+ARGUMENTS_TEMPLATES = {inspect._POSITIONAL_ONLY: '{argument}',
+                       inspect._POSITIONAL_OR_KEYWORD: '{argument}',
+                       inspect._VAR_POSITIONAL: '*{argument}',
+                       inspect._KEYWORD_ONLY: '{parameter}={argument}',
+                       inspect._VAR_KEYWORD: '**{argument}'}
+
 
 class Signature(NamedTuple):
     parameters: List[inspect.Parameter]
