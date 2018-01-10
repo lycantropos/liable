@@ -139,7 +139,7 @@ def search_absolute_objects(object_: Any,
 
 
 def namespace_modules(namespace: NamespaceType
-                      ) -> Iterator[Tuple[str, ModuleType]]:
+                      ) -> Iterator[Tuple[catalog.ObjectPath, ModuleType]]:
     for path, content in namespace.items():
         if inspect.ismodule(content):
             yield path, content
