@@ -80,6 +80,16 @@ def search_name(object_: Any,
                        namespace=namespace)
     if path.type in catalog.non_absolute_paths:
         return path.object
+    *sup_packages, module_name = path.module.split(catalog.SEPARATOR)
+    if not sup_packages:
+        return str(path)
+    module_package = catalog.SEPARATOR.join(sup_packages)
+    module_path = next(object_path
+                       for object_path in namespace
+                       if object_path.module == module_package
+                       and object_path.object == module_name)
+    if module_path.type == catalog.PathType.relative:
+        return module_name + catalog.SEPARATOR + path.object
     return str(path)
 
 
