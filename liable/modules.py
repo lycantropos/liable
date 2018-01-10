@@ -17,10 +17,10 @@ def from_name(name: str,
                 cache=cache)
 
 
-def from_path(name: str,
+def from_path(path: str,
               *,
               cache: Dict[str, ModuleType] = sys.modules) -> ModuleType:
-    skeleton = skeleton_from_path(name)
+    skeleton = skeleton_from_path(path)
     return load(skeleton,
                 cache=cache)
 
