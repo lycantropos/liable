@@ -10,11 +10,11 @@ from typing import (Any,
                     NamedTuple,
                     List)
 
-from . import (annotator,
-               namespaces,
-               catalog)
-from .annotator.detectors import is_generic
-from .utils import merge_mappings
+from liable import (annotator,
+                    namespaces,
+                    catalog)
+from liable.annotator.detectors import is_generic
+from liable.utils import merge_mappings
 
 ARGUMENTS_TEMPLATES = {inspect._POSITIONAL_ONLY: '{argument}',
                        inspect._POSITIONAL_OR_KEYWORD: '{argument}',
