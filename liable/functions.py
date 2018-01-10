@@ -1,4 +1,5 @@
 import inspect
+import operator
 from functools import partial
 from itertools import (chain,
                        filterfalse)
@@ -7,7 +8,7 @@ from typing import (Any,
                     Iterable,
                     Iterator,
                     NamedTuple,
-                    Dict)
+                    List)
 
 from . import (annotator,
                namespaces,
@@ -17,7 +18,7 @@ from .utils import merge_mappings
 
 
 class Signature(NamedTuple):
-    parameters: Dict[str, annotator.Annotation]
+    parameters: List[inspect.Parameter]
     return_type: annotator.Annotation
 
 
@@ -49,7 +50,8 @@ def dependencies(function: FunctionType,
     yield function
     function_signature = signature(function)
     parameters = function_signature.parameters
-    yield from chain.from_iterable(map(annotator.walk, parameters.values()))
+    annotations = map(operator.attrgetter('annotation'), parameters)
+    yield from chain.from_iterable(map(annotator.walk, annotations))
     return_type = function_signature.return_type
     if not generic_return_type and is_generic(return_type.origin):
         yield from return_type.bases
@@ -57,11 +59,18 @@ def dependencies(function: FunctionType,
     yield from annotator.walk(return_type)
 
 
+def normalize_annotation(parameter: inspect.Parameter) -> inspect.Parameter:
+    annotation = annotator.normalize(parameter.annotation)
+    return inspect.Parameter(parameter.name,
+                             parameter.kind,
+                             default=parameter.default,
+                             annotation=annotation)
+
+
 def signature(function: FunctionType) -> Signature:
     raw_signature = inspect.signature(function)
     parameters = raw_signature.parameters.values()
-    parameters = {parameter.name: annotator.normalize(parameter.annotation)
-                  for parameter in parameters}
+    parameters = list(map(normalize_annotation, parameters))
     return_type = annotator.normalize(raw_signature.return_annotation)
     return Signature(parameters=parameters,
                      return_type=return_type)
