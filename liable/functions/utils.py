@@ -5,16 +5,21 @@ from itertools import (chain,
                        filterfalse)
 from types import FunctionType
 from typing import (Any,
+                    Type,
                     Iterable,
                     Iterator,
                     NamedTuple,
+                    Set,
                     List)
 
 from liable import (annotator,
                     namespaces,
-                    catalog)
+                    catalog,
+                    strings)
 from liable.annotator.detectors import is_generic
 from liable.utils import merge_mappings
+from .detectors import (supports_to_string,
+                        is_literal)
 
 ARGUMENTS_TEMPLATES = {inspect._POSITIONAL_ONLY: '{argument}',
                        inspect._POSITIONAL_OR_KEYWORD: '{argument}',
@@ -26,6 +31,50 @@ ARGUMENTS_TEMPLATES = {inspect._POSITIONAL_ONLY: '{argument}',
 class Signature(NamedTuple):
     parameters: List[inspect.Parameter]
     return_type: annotator.Annotation
+
+
+class Argument:
+    def __init__(self,
+                 *,
+                 name: str,
+                 value: Any,
+                 kind: inspect._ParameterKind = inspect._POSITIONAL_ONLY):
+        self.name = name
+        self.value = value
+        self.kind = kind
+
+    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+        value = self.value
+        if supports_to_string(value):
+            value_name = value.to_string(namespace)
+        elif is_literal(value):
+            if isinstance(value, str):
+                value_name = '\'' + value + '\''
+            else:
+                value_name = str(value)
+        else:
+            value_name = namespaces.search_name(value,
+                                                namespace=namespace)
+        return (ARGUMENTS_TEMPLATES[self.kind]
+                .format(parameter=self.name,
+                        argument=value_name))
+
+
+class FunctionCall:
+    def __init__(self,
+                 function: FunctionType,
+                 *arguments: Argument):
+        self.function = function
+        self.arguments = arguments
+
+    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+        function_name = namespaces.search_name(self.function,
+                                               namespace=namespace)
+        arguments_str = strings.join(parameter.to_string(namespace)
+                                     for parameter in self.arguments)
+        return ('{name}({arguments})'
+                .format(name=function_name,
+                        arguments=arguments_str))
 
 
 def dependants_paths(functions: Iterable[FunctionType],
