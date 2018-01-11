@@ -54,7 +54,11 @@ def dependent_objects_paths(module: ModuleType
 
 def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
                            ) -> Iterator[Tuple[catalog.ObjectPath, Any]]:
-    dependencies_names = set(map(operator.attrgetter('module'), objects_paths))
+    modules_paths = filter(modules.full_name_valid, map(str, objects_paths))
+    dependencies_names = chain(map(operator.attrgetter('module'),
+                                   objects_paths),
+                               modules_paths)
+    dependencies_names = set(dependencies_names)
     validate_modules(dependencies_names)
     dependencies = dict(zip(dependencies_names,
                             map(modules.from_name, dependencies_names)))
