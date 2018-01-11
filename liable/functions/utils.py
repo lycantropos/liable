@@ -16,6 +16,7 @@ from liable import (annotator,
                     strings)
 from liable.annotator.detectors import is_generic
 from liable.utils import merge_mappings
+
 from .detectors import (supports_to_string,
                         is_literal)
 
@@ -106,22 +107,14 @@ def dependencies(function: FunctionType,
     function_signature = signature(function)
     parameters = function_signature.parameters
     annotations = map(operator.attrgetter('annotation'), parameters)
-    annotation_walker = partial(walk_annotation, namespace=namespace)
+    annotation_walker = partial(annotator.walk,
+                                namespace=namespace)
     yield from chain.from_iterable(map(annotation_walker, annotations))
     return_type = function_signature.return_type
     if not generic_return_type and is_generic(return_type.origin):
         yield from return_type.bases
         return
     yield from annotation_walker(return_type)
-
-
-def walk_annotation(annotation: annotator.Annotation,
-                    *,
-                    namespace: namespaces.NamespaceType) -> Iterator[Any]:
-    if annotation.origin in namespace.values():
-        yield annotation.origin
-        return
-    yield from annotator.walk(annotation)
 
 
 def normalize_annotation(parameter: inspect.Parameter) -> inspect.Parameter:

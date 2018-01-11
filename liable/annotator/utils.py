@@ -8,7 +8,9 @@ from typing import (TypingMeta,
                     Iterator,
                     Tuple)
 
+from liable import namespaces
 from liable.utils import to_name
+
 from . import annotations
 from .base import Annotation
 from .detectors import (is_typing,
@@ -71,7 +73,16 @@ def to_annotation(object_: Any) -> Annotation:
     return annotations.PlainAnnotation(object_)
 
 
-def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
+def walk(annotation: Annotation,
+         *,
+         namespace: namespaces.NamespaceType) -> Iterator[Any]:
+    if annotation.origin in namespace.values():
+        yield annotation.origin
+        return
+    yield from walk_plain(annotation)
+
+
+def walk_plain(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
     if not isinstance(annotation, Annotation):
         err_msg = ('"{cls}" is not an annotation class.'
                    .format(cls=to_name(annotation.__class__)))
@@ -85,14 +96,14 @@ def walk(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
         yield from annotation.bases
     elif isinstance(annotation, (annotations.Union, annotations.Optional)):
         yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk, annotation.arguments))
+        yield from chain.from_iterable(map(walk_plain, annotation.arguments))
     elif isinstance(annotation, annotations.Generic):
         yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk, annotation.arguments))
+        yield from chain.from_iterable(map(walk_plain, annotation.arguments))
     elif isinstance(annotation, annotations.Callable):
         yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk, annotation.parameters))
-        yield from walk(annotation.return_type)
+        yield from chain.from_iterable(map(walk_plain, annotation.parameters))
+        yield from walk_plain(annotation.return_type)
     else:
         err_msg = ('Do not know how to walk through '
                    '"{cls}" annotation class '
