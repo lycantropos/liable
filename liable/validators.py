@@ -1,12 +1,9 @@
-import importlib.util
-import operator
 import os
-from functools import partial
 from itertools import filterfalse
 from typing import Iterable
 
 from . import (strings,
-               catalog)
+               modules)
 from .utils import is_python_module
 
 
@@ -33,8 +30,8 @@ def validate_modules_paths(paths: Iterable[str]) -> None:
         raise OSError(err_msg)
 
 
-def validate_modules(names: Iterable[str]) -> None:
-    missing_modules = set(filterfalse(module_accessible, names))
+def validate_modules(full_names: Iterable[str]) -> None:
+    missing_modules = set(filterfalse(modules.full_name_valid, full_names))
 
     if not missing_modules:
         return
@@ -45,20 +42,3 @@ def validate_modules(names: Iterable[str]) -> None:
                '{modules}.'
                .format(modules=missing_modules_str))
     raise ModuleNotFoundError(err_msg)
-
-
-def module_accessible(name: str,
-                      *,
-                      sep: str = catalog.SEPARATOR) -> bool:
-    first_sub_module_name, *rest_sub_modules_names = iter(name.split(sep))
-    add_sep_prefix = partial(operator.add, sep)
-    sub_modules_names = ([first_sub_module_name]
-                         + list(map(add_sep_prefix, rest_sub_modules_names)))
-    modules_paths = strings.iterative_join('', *sub_modules_names)
-    for sub_module_name, module_path in zip(sub_modules_names,
-                                            modules_paths):
-        spec = importlib.util.find_spec(name=sub_module_name,
-                                        package=module_path)
-        if spec is None:
-            return False
-    return True
