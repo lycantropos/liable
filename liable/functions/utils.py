@@ -82,6 +82,7 @@ def dependants_paths(functions: Iterable[FunctionType],
                      generic_return_type: bool
                      ) -> Iterator[catalog.ObjectPath]:
     dependencies_detector = partial(dependencies,
+                                    namespace=namespace,
                                     generic_return_type=generic_return_type)
     signatures_dependants = chain.from_iterable(map(dependencies_detector,
                                                     functions))
@@ -99,17 +100,28 @@ def dependants_paths(functions: Iterable[FunctionType],
 
 def dependencies(function: FunctionType,
                  *,
+                 namespace: namespaces.NamespaceType,
                  generic_return_type: bool) -> Iterator[Any]:
     yield function
     function_signature = signature(function)
     parameters = function_signature.parameters
     annotations = map(operator.attrgetter('annotation'), parameters)
-    yield from chain.from_iterable(map(annotator.walk, annotations))
+    annotation_walker = partial(walk_annotation, namespace=namespace)
+    yield from chain.from_iterable(map(annotation_walker, annotations))
     return_type = function_signature.return_type
     if not generic_return_type and is_generic(return_type.origin):
         yield from return_type.bases
         return
-    yield from annotator.walk(return_type)
+    yield from annotation_walker(return_type)
+
+
+def walk_annotation(annotation: annotator.Annotation,
+                    *,
+                    namespace: namespaces.NamespaceType) -> Iterator[Any]:
+    if annotation.origin in namespace.values():
+        yield annotation.origin
+        return
+    yield from annotator.walk(annotation)
 
 
 def normalize_annotation(parameter: inspect.Parameter) -> inspect.Parameter:
