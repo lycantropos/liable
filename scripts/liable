@@ -132,5 +132,21 @@ def generate_tests(top_directory: Optional[str],
         click.echo(source)
 
 
+def write_source(source: str,
+                 *,
+                 top_directory: str,
+                 module_full_name: str) -> None:
+    *sub_directories, module_name = module_full_name.split(catalog.SEPARATOR)
+    file_system.make_packages(top_directory, *sub_directories)
+    module_directory = os.path.join(top_directory,
+                                    *sub_directories)
+    os.makedirs(module_directory,
+                exist_ok=True)
+    module_path = os.path.join(module_directory,
+                               module_name + '.py')
+    with open(module_path, mode='w') as module_file:
+        module_file.write(source)
+
+
 if __name__ == '__main__':
     main()
