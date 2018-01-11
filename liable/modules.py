@@ -42,9 +42,11 @@ def skeleton_from_path(path: str) -> ModuleType:
 def load(module: ModuleType,
          *,
          cache: Dict[str, ModuleType]) -> ModuleType:
-    cached_module = cache.get(module.__name__, None)
+    module_full_name = module.__name__
+    cached_module = cache.get(module_full_name, None)
     if cached_module is None:
         module.__loader__.exec_module(module)
+        cache[module_full_name] = module
         return module
     return cached_module
 
