@@ -1,11 +1,16 @@
 import enum
 import inspect
+import operator
 import os
 import sys
+from itertools import filterfalse
 from typing import (Optional,
                     Iterable,
+                    Iterator,
                     NamedTuple,
                     List)
+
+from . import strings
 
 SEPARATOR = '.'
 
@@ -14,6 +19,10 @@ class PathType(enum.IntEnum):
     inner = 0
     absolute = 1
     relative = 2
+
+
+IMPORTS_TEMPLATES = {PathType.absolute: 'import {module}\n',
+                     PathType.relative: 'from {module} import {objects}\n'}
 
 
 class ObjectPath(NamedTuple):
@@ -61,3 +70,33 @@ def normalize_path_parts(parts: List[str]) -> List[str]:
         else:
             return [*parts[:-1], module_name]
     return parts
+
+
+def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
+    modules_names = set(map(operator.attrgetter('module'), module_paths))
+    try:
+        module_name, = modules_names
+    except ValueError as err:
+        if modules_names:
+            err_msg = ('Found modules paths for different modules: '
+                       '{modules}.'
+                       .format(modules=strings.join(modules_names)))
+        else:
+            err_msg = 'No modules paths found.'
+        raise ValueError(err_msg) from err
+
+    def is_absolute(object_path: ObjectPath) -> bool:
+        return object_path.type == PathType.absolute
+
+    non_absolute_paths = list(filterfalse(is_absolute, module_paths))
+    if non_absolute_paths:
+        objects_names = list(map(operator.attrgetter('object'),
+                                 non_absolute_paths))
+        objects_names_str = strings.join_with_wrapping(objects_names)
+        yield (IMPORTS_TEMPLATES[PathType.relative]
+               .format(module=module_name,
+                       objects=objects_names_str))
+    absolute_path = next(filter(is_absolute, module_paths), None)
+    if absolute_path is not None:
+        yield (IMPORTS_TEMPLATES[PathType.absolute]
+               .format(module=module_name))

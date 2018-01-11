@@ -159,7 +159,7 @@ def generate_test_cases(module_functions: Iterable[FunctionType],
                                                   namespace=namespace,
                                                   generic_return_type=False)
     dependants_paths = modules_objects_paths(dependants_paths)
-    imports = chain.from_iterable(starmap(to_imports,
+    imports = chain.from_iterable(starmap(catalog.to_imports,
                                           dependants_paths.values()))
     tab = ' ' * spaces_count
     test_case_factory = partial(generate_test_case,
@@ -171,36 +171,6 @@ def generate_test_cases(module_functions: Iterable[FunctionType],
     return autopep8.fix_code(''.join(code_blocks),
                              options={'aggressive': True,
                                       'max_line_length': 79})
-
-
-
-def to_imports(*module_paths: catalog.ObjectPath) -> Iterator[str]:
-    modules_names = set(map(operator.attrgetter('module'), module_paths))
-    try:
-        module_name, = modules_names
-    except ValueError as err:
-        if modules_names:
-            err_msg = ('Found modules paths for different modules: '
-                       '{modules}.'
-                       .format(modules=strings.join(modules_names)))
-        else:
-            err_msg = 'No modules paths found.'
-        raise ValueError(err_msg) from err
-
-    def is_absolute(object_path: catalog.ObjectPath) -> bool:
-        return object_path.type == catalog.PathType.absolute
-
-    non_absolute_paths = list(filterfalse(is_absolute, module_paths))
-    if non_absolute_paths:
-        objects_names = list(map(operator.attrgetter('object'),
-                                 non_absolute_paths))
-        objects_names_str = strings.join_with_wrapping(objects_names)
-        yield ('from {module} import {objects}\n'
-               .format(module=module_name,
-                       objects=objects_names_str))
-    absolute_path = next(filter(is_absolute, module_paths), None)
-    if absolute_path is not None:
-        yield 'import {module}\n'.format(module=module_name)
 
 
 def modules_objects_paths(objects_paths: Iterable[catalog.ObjectPath]
