@@ -13,3 +13,4 @@ COPY setup.py .
 COPY setup.cfg .
 
 RUN python3 -m pip install -e .
+RUN python3 -m nltk.downloader wordnet
