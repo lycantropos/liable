@@ -6,7 +6,8 @@ from typing import Iterable
 
 import pytest
 
-from . import (namespaces,
+from . import (annotator,
+               namespaces,
                catalog,
                strategies)
 from .utils import fix_code
@@ -20,8 +21,9 @@ def from_parameters(parameters: Iterable[inspect.Parameter],
                     *,
                     namespace: namespaces.NamespaceType) -> str:
     parameters = list(parameters)
-    annotations = (parameter.annotation.origin
-                   for parameter in parameters)
+    annotations = chain.from_iterable(annotator.walk(parameter.annotation,
+                                                     namespace=namespace)
+                                      for parameter in parameters)
     object_path_seeker = partial(namespaces.search_path,
                                  namespace=namespace)
     annotations_paths = map(object_path_seeker, annotations)
