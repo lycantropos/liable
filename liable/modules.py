@@ -55,10 +55,13 @@ def load(module: ModuleType,
 def search(object_path: catalog.ObjectPath,
            *,
            modules: Dict[str, ModuleType]) -> Any:
+    object_ = modules.get(str(object_path), None)
+    if object_ is not None:
+        return object_
     module = modules[object_path.module]
     if object_path.object is None:
         object_ = module
-    else:
+    elif object_path.type == catalog.PathType.relative:
         object_ = getattr(module, object_path.object)
     return object_
 
