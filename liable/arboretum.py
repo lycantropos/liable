@@ -69,14 +69,18 @@ def to_object_path(statement: ImportType,
                        'relative found.')
             raise ValueError(err_msg)
 
-        objects_names = names
+        objects_names = names[:]
 
         module_name = statement.module
 
         if all_objects_wildcard in objects_names:
             module = modules.from_name(module_name)
             objects_names.remove(all_objects_wildcard)
-            objects_names.extend(module.__all__)
+            try:
+                imported_objects_names = module.__all__
+            except AttributeError:
+                imported_objects_names = vars(module).keys()
+            objects_names.extend(imported_objects_names)
 
         modules_names = repeat(module_name)
     else:
