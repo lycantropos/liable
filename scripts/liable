@@ -118,15 +118,16 @@ def generate_tests(top_directory: Optional[str],
     add_utilities = partial(merge_mappings, utilities)
     modules_namespaces = map(namespaces.from_module,
                              map(modules.from_path, modules_paths))
-    modules_namespaces = map(add_utilities, modules_namespaces)
+    modules_namespaces = dict(zip(modules_paths,
+                                  map(add_utilities, modules_namespaces)))
     test_cases_generator = partial(test_cases.from_functions,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count)
-    for namespace in modules_namespaces:
-        module_functions = list(namespaces.inner_functions(namespace))
+    for module_path, module_namespace in modules_namespaces.items():
+        module_functions = list(namespaces.inner_functions(module_namespace))
         try:
             source = test_cases_generator(module_functions,
-                                          namespace=namespace)
+                                          namespace=module_namespace)
         except ImportError as err:
             raise click.BadParameter(err) from err
         click.echo(source)
