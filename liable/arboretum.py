@@ -11,7 +11,8 @@ from types import ModuleType
 from typing import (Union,
                     Callable,
                     Iterable,
-                    Iterator)
+                    Iterator,
+                    Tuple)
 
 from . import (catalog,
                modules)
@@ -19,6 +20,8 @@ from . import (catalog,
 ImportType = Union[ast.Import, ast.ImportFrom]
 
 ALL_OBJECTS_WILDCARD = '*'
+
+DYNAMIC_MODULES_EXTENSIONS = ('.so', '.dylib', '.dll')
 
 
 def from_source(source: str,
@@ -34,10 +37,19 @@ def from_module(module: ModuleType) -> ast.AST:
                        file_name=module.__file__)
 
 
-def to_source(module: ModuleType) -> str:
-    if os.stat(module.__file__).st_size == 0:
+def to_source(module: ModuleType,
+              *,
+              permissible_extensions: Tuple[str] = DYNAMIC_MODULES_EXTENSIONS
+              ) -> str:
+    module_path = module.__file__
+    if os.stat(module_path).st_size == 0:
         return ''
-    return inspect.getsource(module)
+    try:
+        return inspect.getsource(module)
+    except OSError as err:
+        if module_path.endswith(permissible_extensions):
+            return ''
+        raise err
 
 
 def to_object_path(statement: ImportType,
