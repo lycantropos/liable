@@ -196,7 +196,7 @@ def generate_test_case(function: FunctionType,
                     argument=parameter.name)
             for parameter in function_parameters)
     return_annotation = signature.return_annotation
-    return_annotation_bases = to_bases(return_annotation)
+    return_annotation_bases = annotator.to_bases(return_annotation)
 
     def to_statement(annotation_base: Type) -> str:
         if annotation_base is None:
@@ -231,12 +231,6 @@ def generate_test_case(function: FunctionType,
                                      result=RESULT_NAME,
                                      arguments=function_arguments_str,
                                      return_type=return_type)
-
-
-def to_bases(annotation: Type) -> Tuple[Type, ...]:
-    if not isinstance(annotation, annotator.Annotation):
-        annotation = annotator.normalize(annotation)
-    return annotation.bases
 
 
 if __name__ == '__main__':

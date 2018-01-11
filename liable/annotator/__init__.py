@@ -1,3 +1,4 @@
 from .base import Annotation
 from .utils import (normalize,
-                    walk)
+                    walk,
+                    to_bases)

@@ -5,7 +5,8 @@ from typing import (TypingMeta,
                     Any,
                     Union,
                     Type,
-                    Iterator)
+                    Iterator,
+                    Tuple)
 
 from liable.utils import to_name
 from . import annotations
@@ -105,3 +106,9 @@ def none_type_to_none(object_: Any) -> Any:
     if object_ is NoneType:
         return None
     return object_
+
+
+def to_bases(annotation: Type) -> Tuple[Type, ...]:
+    if not isinstance(annotation, Annotation):
+        annotation = normalize(annotation)
+    return annotation.bases
