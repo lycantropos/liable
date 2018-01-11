@@ -26,7 +26,6 @@ def is_python_module(path: str) -> bool:
         return False
     with open(path) as source_file:
         source = source_file.read()
-
     try:
         arboretum.from_source(source,
                               file_name=path)
