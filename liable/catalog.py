@@ -3,11 +3,13 @@ import inspect
 import operator
 import os
 import sys
+from collections import defaultdict
 from itertools import filterfalse
 from typing import (Optional,
                     Iterable,
                     Iterator,
                     NamedTuple,
+                    Dict,
                     List)
 
 from . import strings
@@ -100,3 +102,11 @@ def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
     if absolute_path is not None:
         yield (IMPORTS_TEMPLATES[PathType.absolute]
                .format(module=module_name))
+
+
+def modules_objects_paths(objects_paths: Iterable[ObjectPath]
+                          ) -> Dict[str, List[ObjectPath]]:
+    result = defaultdict(list)
+    for object_path in objects_paths:
+        result[object_path.module].append(object_path)
+    return result
