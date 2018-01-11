@@ -14,6 +14,8 @@ from typing import (Union,
                     Iterator,
                     Tuple)
 
+from liable import strings
+
 from . import (catalog,
                modules)
 
@@ -83,7 +85,8 @@ def to_object_path(statement: ImportType,
 
         def sup_modules(module_name: str) -> Iterable[str]:
             *result, _ = module_name.split(sep)
-            yield from result
+            yield from strings.iterative_join(*result,
+                                              sep=sep)
 
         sup_modules = chain.from_iterable(map(sup_modules,
                                               names))
