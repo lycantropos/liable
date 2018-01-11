@@ -17,6 +17,9 @@ from liable import (modules,
                     namespaces,
                     file_system,
                     catalog,
+                    parameters,
+                    strategies,
+                    fixtures,
                     test_cases)
 from liable.utils import (is_python_module,
                           merge_mappings)
@@ -142,6 +145,37 @@ def generate_tests(parent_directory: Optional[str],
             write_source(source,
                          top_directory=target_directory,
                          module_full_name=modules.path_to_name(module_path))
+
+    modules_functions = chain.from_iterable(map(namespaces.inner_functions,
+                                                modules_namespaces.values()))
+    modules_namespace = merge_mappings(*modules_namespaces.values())
+    module_parameters = parameters.from_functions(modules_functions)
+    modules_parameters = parameters.combine(list(module_parameters),
+                                            built_ins=built_ins,
+                                            namespace=modules_namespace)
+    strategies_directory = os.path.join(target_directory, 'strategies')
+    fixtures_directory = os.path.join(target_directory, 'fixtures')
+    os.makedirs(strategies_directory,
+                exist_ok=True)
+    os.makedirs(fixtures_directory,
+                exist_ok=True)
+
+    strategies_init_module_path = os.path.join(strategies_directory,
+                                               '__init__.py')
+    # TODO: merge related or duplicated imports
+    with open(strategies_init_module_path, mode='a') as init_module_file:
+        init_module_file.write(strategies.init_module(modules_parameters))
+
+    modules_namespace = merge_mappings(built_ins, modules_namespace)
+    for module_full_name, module_parameters in modules_parameters.items():
+        write_source(strategies.from_parameters(module_parameters,
+                                                namespace=modules_namespace),
+                     top_directory=strategies_directory,
+                     module_full_name=module_full_name)
+        write_source(fixtures.from_parameters(module_parameters,
+                                              namespace=modules_namespace),
+                     top_directory=fixtures_directory,
+                     module_full_name=module_full_name)
 
 
 def write_source(source: str,
