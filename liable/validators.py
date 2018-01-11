@@ -3,7 +3,8 @@ import os
 from itertools import filterfalse
 from typing import Iterable
 
-from . import strings
+from . import (strings,
+               catalog)
 from .utils import is_python_module
 
 
@@ -46,7 +47,7 @@ def validate_modules(names: Iterable[str]) -> None:
 
 def module_accessible(name: str,
                       *,
-                      sep: str = '.') -> bool:
+                      sep: str = catalog.SEPARATOR) -> bool:
     sub_modules_names = name.split(sep)
     module_path = ''
     for sub_module_name in sub_modules_names:
