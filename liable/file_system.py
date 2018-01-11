@@ -3,9 +3,9 @@ from functools import partial
 from typing import Iterator
 
 
-def find(path: str,
-         *,
-         recursive: bool) -> Iterator[str]:
+def find_files(path: str,
+               *,
+               recursive: bool) -> Iterator[str]:
     if os.path.isdir(path):
         yield from directory_files(path,
                                    recursive=recursive)

@@ -15,7 +15,7 @@ from pathspec import (PathSpec,
 
 from liable import (modules,
                     namespaces,
-                    files,
+                    file_system,
                     catalog,
                     test_cases)
 from liable.utils import (is_python_module,
@@ -54,9 +54,9 @@ def search_modules(recursive: bool,
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    files_seeker = partial(files.find,
-                           recursive=recursive)
-    files_paths = chain.from_iterable(map(files_seeker, paths))
+    files_paths_seeker = partial(file_system.find_files,
+                                 recursive=recursive)
+    files_paths = chain.from_iterable(map(files_paths_seeker, paths))
     modules_paths = filter(is_python_module, files_paths)
 
     if ignore_patterns_path:
