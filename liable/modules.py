@@ -1,7 +1,7 @@
 import importlib.util
 import inspect
-import sys
-from importlib._bootstrap_external import SourceFileLoader
+import operator
+from functools import partial
 from types import ModuleType
 from typing import (Any,
                     Dict)
@@ -10,46 +10,18 @@ from . import (catalog,
                strings)
 
 
-def from_name(name: str,
-              *,
-              cache: Dict[str, ModuleType] = sys.modules) -> ModuleType:
-    skeleton = skeleton_from_name(name)
-    return load(skeleton,
-                cache=cache)
+def from_name(full_name: str) -> ModuleType:
+    return importlib.import_module(full_name)
 
 
-def from_path(path: str,
-              *,
-              cache: Dict[str, ModuleType] = sys.modules) -> ModuleType:
-    skeleton = skeleton_from_path(path)
-    return load(skeleton,
-                cache=cache)
+def from_path(path: str) -> ModuleType:
+    full_name = catalog.to_module_full_name(catalog.to_relative(path))
+    return from_name(full_name)
 
 
 def skeleton_from_name(name: str) -> ModuleType:
     spec = importlib.util.find_spec(name)
     return importlib.util.module_from_spec(spec)
-
-
-def skeleton_from_path(path: str) -> ModuleType:
-    module_full_name = catalog.to_module_full_name(catalog.to_relative(path))
-    loader = SourceFileLoader(module_full_name,
-                              path=path)
-    spec = importlib.util.spec_from_loader(module_full_name,
-                                           loader=loader)
-    return importlib.util.module_from_spec(spec)
-
-
-def load(module: ModuleType,
-         *,
-         cache: Dict[str, ModuleType]) -> ModuleType:
-    module_full_name = module.__name__
-    cached_module = cache.get(module_full_name, None)
-    if cached_module is None:
-        module.__loader__.exec_module(module)
-        cache[module_full_name] = module
-        return module
-    return cached_module
 
 
 def search(object_path: catalog.ObjectPath,
