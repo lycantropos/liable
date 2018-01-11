@@ -1,13 +1,10 @@
 import importlib.util
 import inspect
-import os
 import sys
-from importlib._bootstrap_external import (SOURCE_SUFFIXES,
-                                           SourceFileLoader)
+from importlib._bootstrap_external import SourceFileLoader
 from types import ModuleType
 from typing import (Any,
-                    Dict,
-                    Tuple)
+                    Dict)
 
 from . import catalog
 
@@ -71,16 +68,3 @@ def is_object_from_module(object_: Any,
                           *,
                           module: ModuleType) -> bool:
     return inspect.getmodule(object_) is module
-
-
-def path_to_name(path: str,
-                 *,
-                 source_suffixes: Tuple[str] = tuple(SOURCE_SUFFIXES)) -> str:
-    if os.path.isabs(path):
-        err_msg = ('Invalid path: "{path}", '
-                   'should be relative.'
-                   .format(path=path))
-        raise ValueError(err_msg)
-    if path.endswith(source_suffixes):
-        path, _ = os.path.splitext(path)
-    return os.path.normpath(path).replace(os.sep, '.')
