@@ -128,23 +128,6 @@ def generate_tests(parent_directory: Optional[str],
                              map(modules.from_path, modules_paths))
     modules_namespaces = dict(zip(modules_paths,
                                   map(add_utilities, modules_namespaces)))
-    test_cases_generator = partial(test_cases.from_functions,
-                                   built_ins=built_ins,
-                                   spaces_count=spaces_count)
-    for path, namespace in modules_namespaces.items():
-        path = os.path.relpath(path,
-                               start=parent_directory)
-        module_functions = list(namespaces.inner_functions(namespace))
-        try:
-            source = test_cases_generator(module_functions,
-                                          namespace=namespace)
-        except ImportError as err:
-            raise click.BadParameter(err) from err
-        else:
-            path = test_cases.normalize_path(path)
-            write_source(source,
-                         top_directory=target_directory,
-                         module_full_name=catalog.to_module_full_name(path))
 
     modules_functions = chain.from_iterable(map(namespaces.inner_functions,
                                                 modules_namespaces.values()))
@@ -176,6 +159,24 @@ def generate_tests(parent_directory: Optional[str],
                                               namespace=modules_namespace),
                      top_directory=fixtures_directory,
                      module_full_name=module_full_name)
+
+    test_cases_generator = partial(test_cases.from_functions,
+                                   built_ins=built_ins,
+                                   spaces_count=spaces_count)
+    for path, namespace in modules_namespaces.items():
+        path = os.path.relpath(path,
+                               start=parent_directory)
+        module_functions = list(namespaces.inner_functions(namespace))
+        try:
+            source = test_cases_generator(module_functions,
+                                          namespace=namespace)
+        except ImportError as err:
+            raise click.BadParameter(err) from err
+        else:
+            path = test_cases.normalize_path(path)
+            write_source(source,
+                         top_directory=target_directory,
+                         module_full_name=catalog.to_module_full_name(path))
 
 
 def write_source(source: str,
