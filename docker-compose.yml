@@ -6,7 +6,7 @@ services:
       context: .
       args:
         - PYTHON3_VERSION=${PYTHON3_VERSION}
-    image: lycantropos/liable:0.0.0
+    image: lycantropos/liable:0.0.1-alpha
     volumes:
       - .:/opt/liable/
     entrypoint: python3
