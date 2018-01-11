@@ -129,13 +129,19 @@ def generate_tests(parent_directory: Optional[str],
                                    built_ins=built_ins,
                                    spaces_count=spaces_count)
     for module_path, module_namespace in modules_namespaces.items():
+        module_path = os.path.relpath(module_path,
+                                      start=parent_directory)
         module_functions = list(namespaces.inner_functions(module_namespace))
         try:
             source = test_cases_generator(module_functions,
                                           namespace=module_namespace)
         except ImportError as err:
             raise click.BadParameter(err) from err
-        click.echo(source)
+        else:
+            module_path = test_cases.normalize_path(module_path)
+            write_source(source,
+                         top_directory=target_directory,
+                         module_full_name=modules.path_to_name(module_path))
 
 
 def write_source(source: str,
