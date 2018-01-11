@@ -29,9 +29,15 @@ def from_source(source: str,
 
 
 def from_module(module: ModuleType) -> ast.AST:
-    source = inspect.getsource(module)
+    source = to_source(module)
     return from_source(source,
                        file_name=module.__file__)
+
+
+def to_source(module: ModuleType) -> str:
+    if os.stat(module.__file__).st_size == 0:
+        return ''
+    return inspect.getsource(module)
 
 
 def to_object_path(statement: ImportType,
