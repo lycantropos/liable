@@ -85,13 +85,18 @@ utilities = {catalog.ObjectPath(module=collections.__name__,
 
 
 @main.command(name='tests')
+@click.option('--top-directory', '-t',
+              type=click.Path(exists=True),
+              default=None,
+              help='Modules top-level directory.')
 @click.option('--spaces-count', '-s',
               type=click.IntRange(1),
               default=4,
               help='Number of spaces used for indentation.')
 @click.argument('modules_paths',
                 nargs=-1)
-def generate_tests(spaces_count: int,
+def generate_tests(top_directory: Optional[str],
+                   spaces_count: int,
                    modules_paths: List[str]) -> None:
     """Generates test cases skeletons for modules."""
     if not modules_paths:
@@ -99,6 +104,9 @@ def generate_tests(spaces_count: int,
         raise click.BadParameter(err_msg)
 
     modules_paths = list(map(os.path.abspath, modules_paths))
+
+    if top_directory is None:
+        top_directory = os.path.commonpath(modules_paths)
 
     try:
         validate_paths(modules_paths)
