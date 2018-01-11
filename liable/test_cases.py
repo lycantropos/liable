@@ -15,8 +15,8 @@ from . import (namespaces,
 from .utils import (fix_code,
                     merge_mappings)
 
-TEST_CASE_PARAMETER_TEMPLATE = '{parameter}: {annotation}'
-TEST_CASE_DEFINITION_TEMPLATE = 'def test_{function}({parameters}) -> None:\n'
+PARAMETER_TEMPLATE = '{parameter}: {annotation}'
+DEFINITION_TEMPLATE = 'def test_{function}({parameters}) -> None:\n'
 RESULT_NAME = 'result'
 FUNCTION_CALL_TEMPLATE = '{result} = {function}({arguments})\n\n'
 RETURN_TYPE_CHECK_TEMPLATE = 'isinstance({result}, {return_type})'
@@ -40,8 +40,8 @@ def from_functions(module_functions: Iterable[FunctionType],
                                 spaces_count=spaces_count,
                                 built_ins=built_ins,
                                 namespace=namespace)
-    tests_cases = map(test_case_factory, module_functions)
-    code_blocks = chain(imports, tests_cases)
+    test_cases = map(test_case_factory, module_functions)
+    code_blocks = chain(imports, test_cases)
     return fix_code(''.join(code_blocks))
 
 
@@ -59,7 +59,7 @@ def from_function(function: FunctionType,
     signature = inspect.signature(function)
     function_parameters = signature.parameters.values()
     test_parameters_str = strings.join(
-            TEST_CASE_PARAMETER_TEMPLATE.format(
+            PARAMETER_TEMPLATE.format(
                     parameter=parameter.name,
                     annotation=to_name(parameter.annotation)
             )
@@ -98,14 +98,14 @@ def from_function(function: FunctionType,
                            .format(return_types=return_types_str))
 
     tab = ' ' * spaces_count
-    test_case_template = (TEST_CASE_DEFINITION_TEMPLATE
-                          + tab + FUNCTION_CALL_TEMPLATE
-                          + tab + assertion_template)
-    return test_case_template.format(function=function.__name__,
-                                     parameters=test_parameters_str,
-                                     result=RESULT_NAME,
-                                     arguments=function_arguments_str,
-                                     return_type=return_type)
+    template = (DEFINITION_TEMPLATE
+                + tab + FUNCTION_CALL_TEMPLATE
+                + tab + assertion_template)
+    return template.format(function=function.__name__,
+                           parameters=test_parameters_str,
+                           result=RESULT_NAME,
+                           arguments=function_arguments_str,
+                           return_type=return_type)
 
 
 def normalize_path(module_path: str) -> str:
