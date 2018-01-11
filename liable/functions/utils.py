@@ -85,9 +85,9 @@ def dependants_paths(functions: Iterable[FunctionType],
                                     generic_return_type=generic_return_type)
     signatures_dependants = chain.from_iterable(map(dependencies_detector,
                                                     functions))
+    namespace = merge_mappings(built_ins, namespace)
     object_path_seeker = partial(namespaces.search_path,
-                                 namespace=merge_mappings(built_ins,
-                                                          namespace))
+                                 namespace=namespace)
     result = set(chain(map(object_path_seeker,
                            signatures_dependants)))
 
