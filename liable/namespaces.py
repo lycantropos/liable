@@ -78,7 +78,7 @@ def search_name(object_: Any,
                 namespace: NamespaceType) -> str:
     path = search_path(object_,
                        namespace=namespace)
-    if path.type in catalog.non_absolute_paths:
+    if path.type != catalog.PathType.absolute:
         return path.object
     *sup_packages, module_name = path.module.split(catalog.SEPARATOR)
     if not sup_packages:

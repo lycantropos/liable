@@ -16,10 +16,6 @@ class PathType(enum.IntEnum):
     relative = 2
 
 
-imports_paths = {PathType.absolute, PathType.relative}
-non_absolute_paths = {PathType.inner, PathType.relative}
-
-
 class ObjectPath(NamedTuple):
     module: Optional[str]
     object: Optional[str]
