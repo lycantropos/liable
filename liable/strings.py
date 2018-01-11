@@ -143,7 +143,7 @@ def is_noun(word: str) -> bool:
 
 
 def iterative_join(*strings: str,
-                   sep: str) -> Iterator[str]:
+                   sep: str = '') -> Iterator[str]:
     if not strings:
         return
     strings = iter(strings)
