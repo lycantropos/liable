@@ -149,8 +149,8 @@ def generate_tests(parent_directory: Optional[str],
     modules_functions = chain.from_iterable(map(namespaces.inner_functions,
                                                 modules_namespaces.values()))
     modules_namespace = merge_mappings(*modules_namespaces.values())
-    module_parameters = parameters.from_functions(modules_functions)
-    modules_parameters = parameters.combine(list(module_parameters),
+    modules_parameters = parameters.from_functions(modules_functions)
+    modules_parameters = parameters.combine(list(modules_parameters),
                                             built_ins=built_ins,
                                             namespace=modules_namespace)
     strategies_directory = os.path.join(target_directory, 'strategies')
