@@ -1,4 +1,5 @@
 import inspect
+import os
 from functools import partial
 from itertools import (chain,
                        starmap)
@@ -105,3 +106,8 @@ def from_function(function: FunctionType,
                                      result=RESULT_NAME,
                                      arguments=function_arguments_str,
                                      return_type=return_type)
+
+
+def normalize_path(module_path: str) -> str:
+    *sub_directories, module_file_name = module_path.split(os.sep)
+    return os.path.join(*sub_directories, 'test_' + module_file_name)
