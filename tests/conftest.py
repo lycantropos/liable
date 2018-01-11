@@ -1,7 +1,8 @@
 import os
 import pkgutil
 import sys
-from typing import List
+from functools import partial
+from typing import Iterator
 
 from _pytest.config import Parser
 from _pytest.python import Metafunc
@@ -10,17 +11,44 @@ base_dir = os.path.dirname(__file__)
 sys.path.append(base_dir)
 
 
-def explore_pytest_plugins(base_dir: str,
-                           fixtures_pkg_name: str) -> List[str]:
-    fixtures_pkg_path = os.path.join(base_dir,
-                                     fixtures_pkg_name)
-    return ['{pkg_name}.{name}'.format(pkg_name=fixtures_pkg_name,
-                                       name=name)
-            for _, name, _ in pkgutil.iter_modules([fixtures_pkg_path])]
+def explore_pytest_plugins(fixtures_package_path: str) -> Iterator[str]:
+    directories = find_directories(fixtures_package_path)
+    packages_paths = [
+        file_finder.path
+        for file_finder, _, is_package in pkgutil.iter_modules(directories)
+        if not is_package]
+    common_path = os.path.dirname(os.path.commonpath(packages_paths))
+    for module_info in pkgutil.iter_modules(packages_paths):
+        file_finder, module_name, is_package = module_info
+        if is_package:
+            continue
+        package_path = os.path.relpath(file_finder.path,
+                                       start=common_path)
+        package_name = path_to_module_name(package_path)
+        yield '{package}.{module}'.format(package=package_name,
+                                          module=module_name)
 
 
-pytest_plugins = explore_pytest_plugins(base_dir=base_dir,
-                                        fixtures_pkg_name='fixtures')
+def find_directories(root: str) -> Iterator[str]:
+    if not os.path.isdir(root):
+        return
+    yield root
+    for root, sub_directories, _ in os.walk(root):
+        yield from map(partial(os.path.join, root),
+                       sub_directories)
+
+
+def path_to_module_name(path: str) -> str:
+    if os.path.isabs(path):
+        err_msg = ('Invalid path: "{path}", '
+                   'should be relative.'
+                   .format(path=path))
+        raise ValueError(err_msg)
+    return os.path.normpath(path).replace(os.sep, '.')
+
+
+fixtures_package_path = os.path.join(base_dir, 'fixtures')
+pytest_plugins = list(explore_pytest_plugins(fixtures_package_path))
 
 
 def pytest_addoption(parser: Parser) -> None:
