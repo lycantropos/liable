@@ -1,9 +1,12 @@
 import operator
 import os
+from functools import partial
 from itertools import chain
 from typing import (Any,
                     Hashable,
                     Mapping)
+
+import autopep8
 
 from . import arboretum
 
@@ -36,3 +39,8 @@ def is_python_module(path: str) -> bool:
 def merge_mappings(*mappings: Mapping[Hashable, Any]) -> dict:
     items = chain.from_iterable(map(operator.methodcaller('items'), mappings))
     return dict(items)
+
+
+fix_code = partial(autopep8.fix_code,
+                   options={'aggressive': True,
+                            'max_line_length': 79})
