@@ -38,7 +38,7 @@ def built_ins(module: ModuleType = builtins) -> NamespaceType:
 def dependent_objects(module: ModuleType) -> NamespaceType:
     if modules.is_built_in(module):
         return {}
-    objects_paths = list(dependent_objects_paths(module))
+    objects_paths = dependent_objects_paths(module)
     return dict(load_dependent_objects(objects_paths))
 
 
@@ -54,6 +54,7 @@ def dependent_objects_paths(module: ModuleType
 
 def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
                            ) -> Iterator[Tuple[catalog.ObjectPath, Any]]:
+    objects_paths = list(objects_paths)
     modules_paths = filter(modules.full_name_valid, map(str, objects_paths))
     dependencies_names = chain(map(operator.attrgetter('module'),
                                    objects_paths),
