@@ -1,10 +1,13 @@
-import importlib._bootstrap_external
 import importlib.util
 import inspect
+import os
 import sys
+from importlib._bootstrap_external import (SOURCE_SUFFIXES,
+                                           SourceFileLoader)
 from types import ModuleType
 from typing import (Any,
-                    Dict)
+                    Dict,
+                    Tuple)
 
 from . import catalog
 
@@ -32,8 +35,8 @@ def skeleton_from_name(name: str) -> ModuleType:
 
 def skeleton_from_path(path: str) -> ModuleType:
     module_name = catalog.to_import(catalog.to_relative(path))
-    loader = importlib._bootstrap_external.SourceFileLoader(module_name,
-                                                            path=path)
+    loader = SourceFileLoader(module_name,
+                              path=path)
     spec = importlib.util.spec_from_loader(module_name,
                                            loader=loader)
     return importlib.util.module_from_spec(spec)
@@ -68,3 +71,16 @@ def is_object_from_module(object_: Any,
                           *,
                           module: ModuleType) -> bool:
     return inspect.getmodule(object_) is module
+
+
+def path_to_name(path: str,
+                 *,
+                 source_suffixes: Tuple[str] = tuple(SOURCE_SUFFIXES)) -> str:
+    if os.path.isabs(path):
+        err_msg = ('Invalid path: "{path}", '
+                   'should be relative.'
+                   .format(path=path))
+        raise ValueError(err_msg)
+    if path.endswith(source_suffixes):
+        path, _ = os.path.splitext(path)
+    return os.path.normpath(path).replace(os.sep, '.')
