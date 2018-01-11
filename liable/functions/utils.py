@@ -5,11 +5,9 @@ from itertools import (chain,
                        filterfalse)
 from types import FunctionType
 from typing import (Any,
-                    Type,
                     Iterable,
                     Iterator,
                     NamedTuple,
-                    Set,
                     List)
 
 from liable import (annotator,
