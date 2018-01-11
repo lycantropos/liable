@@ -6,7 +6,8 @@ from types import ModuleType
 from typing import (Any,
                     Dict)
 
-from . import catalog
+from . import (catalog,
+               strings)
 
 
 def from_name(name: str,
