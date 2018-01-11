@@ -140,3 +140,15 @@ def is_noun(word: str) -> bool:
     synsets = wordnet.synsets(word)
     return any(synset.pos() == wordnet.NOUN
                for synset in synsets)
+
+
+def iterative_join(*strings: str,
+                   sep: str) -> Iterator[str]:
+    if not strings:
+        return
+    strings = iter(strings)
+    result = next(strings)
+    yield result
+    for string in strings:
+        result = result + sep + string
+        yield result

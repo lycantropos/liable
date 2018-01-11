@@ -2,6 +2,8 @@ import os
 from functools import partial
 from typing import Iterator
 
+from . import strings
+
 
 def find_files(path: str,
                *,
@@ -29,19 +31,11 @@ def make_packages(directory: str,
     test_cases_directory = os.path.join(directory, *sub_directories)
     os.makedirs(test_cases_directory,
                 exist_ok=True)
-    for package_path in iterative_join(directory, *sub_directories):
+    for package_path in strings.iterative_join(directory, *sub_directories,
+                                               sep=os.sep):
         make_init_module(package_path)
 
 
 def make_init_module(directory: str) -> None:
     path = os.path.join(directory, '__init__.py')
     open(path, mode='a').close()
-
-
-def iterative_join(directory: str,
-                   *sub_directories: str) -> Iterator[str]:
-    package_path = directory
-    yield package_path
-    for sub_dir in sub_directories:
-        package_path = os.path.join(package_path, sub_dir)
-        yield package_path
