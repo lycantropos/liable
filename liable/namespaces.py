@@ -3,7 +3,8 @@ import inspect
 import operator
 from functools import partial
 from itertools import chain
-from types import ModuleType
+from types import (FunctionType,
+                   ModuleType)
 from typing import (Any,
                     Iterable,
                     Iterator,
@@ -153,3 +154,17 @@ def namespace_modules(namespace: NamespaceType
     for path, content in namespace.items():
         if inspect.ismodule(content):
             yield path, content
+
+
+def functions_by_path_type(namespace: NamespaceType,
+                           *,
+                           path_type: catalog.PathType
+                           ) -> Iterator[FunctionType]:
+    objects_by_path_type = (content
+                            for path, content in namespace.items()
+                            if path.type == path_type)
+    yield from filter(inspect.isfunction, objects_by_path_type)
+
+
+inner_functions = partial(functions_by_path_type,
+                          path_type=catalog.PathType.inner)
