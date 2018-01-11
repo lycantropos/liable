@@ -57,9 +57,11 @@ def from_functions(module_functions: Iterable[FunctionType]
         previous_mro = bases_mro(previous_annotation)
         if (mro & previous_mro == {object} and
                 not (previous_annotation.origin is annotation.origin is Any)):
-            err_msg = ('Invalid parameters: annotations should agree, '
+            err_msg = ('Invalid parameter: "{parameter}", '
+                       'annotations should agree, '
                        'but found "{previous_annotation}", "{annotation}".'
-                       .format(previous_annotation=previous_annotation.origin,
+                       .format(parameter=parameter.name,
+                               previous_annotation=previous_annotation.origin,
                                annotation=annotation.origin))
             raise ValueError(err_msg)
         if previous_mro - mro:
