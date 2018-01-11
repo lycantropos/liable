@@ -57,7 +57,7 @@ def to_relative(path: str,
     return os.path.normpath(os.path.relpath(path, root_path))
 
 
-def to_import(path: str) -> str:
+def to_module_full_name(path: str) -> str:
     path_parts = path.split(os.sep)
     path_parts = normalize_path_parts(path_parts)
     return SEPARATOR.join(path_parts)

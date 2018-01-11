@@ -86,8 +86,8 @@ def import_absolutizer(module_path: str
     def to_absolute(statement: ImportType) -> ImportType:
         if isinstance(statement, ast.Import):
             return statement
-        module_name = to_module_name(statement)
-        return ast.ImportFrom(module=module_name,
+        module_full_name = to_module_full_name(statement)
+        return ast.ImportFrom(module=module_full_name,
                               level=0,
                               names=statement.names,
                               lineno=statement.lineno,
@@ -96,7 +96,7 @@ def import_absolutizer(module_path: str
     module_directory_path = os.path.dirname(module_path)
     module_directory_relative_path = catalog.to_relative(module_directory_path)
 
-    def to_module_name(statement: ast.ImportFrom) -> str:
+    def to_module_full_name(statement: ast.ImportFrom) -> str:
         result = statement.module
         if is_import_relative(statement):
             jumps = (os.pardir + os.sep) * (statement.level - 1)
@@ -104,7 +104,7 @@ def import_absolutizer(module_path: str
                                        jumps,
                                        result or '')
             module_path = os.path.normpath(module_path)
-            result = catalog.to_import(module_path)
+            result = catalog.to_module_full_name(module_path)
         return result
 
     return to_absolute

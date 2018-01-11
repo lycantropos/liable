@@ -34,10 +34,10 @@ def skeleton_from_name(name: str) -> ModuleType:
 
 
 def skeleton_from_path(path: str) -> ModuleType:
-    module_name = catalog.to_import(catalog.to_relative(path))
-    loader = SourceFileLoader(module_name,
+    module_full_name = catalog.to_module_full_name(catalog.to_relative(path))
+    loader = SourceFileLoader(module_full_name,
                               path=path)
-    spec = importlib.util.spec_from_loader(module_name,
+    spec = importlib.util.spec_from_loader(module_full_name,
                                            loader=loader)
     return importlib.util.module_from_spec(spec)
 
