@@ -70,3 +70,22 @@ def is_object_from_module(object_: Any,
                           *,
                           module: ModuleType) -> bool:
     return inspect.getmodule(object_) is module
+
+
+def full_name_valid(full_name: str,
+                    *,
+                    sep: str = catalog.SEPARATOR) -> bool:
+    first_sub_module_name, *rest_sub_modules_names = iter(full_name.split(sep))
+    add_sep_prefix = partial(operator.add, sep)
+    sub_modules_names = ([first_sub_module_name]
+                         + list(map(add_sep_prefix, rest_sub_modules_names)))
+    modules_paths = strings.iterative_join('', *sub_modules_names)
+    for sub_module_name, module_path in zip(sub_modules_names,
+                                            modules_paths):
+        full_name = importlib.util.resolve_name(name=sub_module_name,
+                                                package=module_path)
+        try:
+            from_name(full_name)
+        except ImportError:
+            return False
+    return True
