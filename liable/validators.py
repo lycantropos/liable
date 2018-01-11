@@ -1,5 +1,7 @@
 import importlib.util
+import operator
 import os
+from functools import partial
 from itertools import filterfalse
 from typing import Iterable
 
@@ -48,15 +50,15 @@ def validate_modules(names: Iterable[str]) -> None:
 def module_accessible(name: str,
                       *,
                       sep: str = catalog.SEPARATOR) -> bool:
-    sub_modules_names = name.split(sep)
-    module_path = ''
-    for sub_module_name in sub_modules_names:
-        if module_path:
-            sub_module_name = sep + sub_module_name
+    first_sub_module_name, *rest_sub_modules_names = iter(name.split(sep))
+    add_sep_prefix = partial(operator.add, sep)
+    sub_modules_names = ([first_sub_module_name]
+                         + list(map(add_sep_prefix, rest_sub_modules_names)))
+    modules_paths = strings.iterative_join('', *sub_modules_names)
+    for sub_module_name, module_path in zip(sub_modules_names,
+                                            modules_paths):
         spec = importlib.util.find_spec(name=sub_module_name,
                                         package=module_path)
         if spec is None:
             return False
-        module_path += sub_module_name
-
     return True
