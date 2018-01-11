@@ -1,6 +1,7 @@
 import inspect
 from functools import partial
-from itertools import chain
+from itertools import (chain,
+                       starmap)
 from typing import Iterable
 
 import pytest
@@ -34,8 +35,10 @@ def from_parameters(parameters: Iterable[inspect.Parameter],
     ]
     dependant_objects_paths = chain(additional_objects_paths,
                                     annotations_paths)
-    imports = chain.from_iterable(map(catalog.to_imports,
-                                      dependant_objects_paths))
+    modules_dependant_objects_paths = (
+        catalog.modules_objects_paths(dependant_objects_paths).values())
+    imports = chain.from_iterable(starmap(catalog.to_imports,
+                                          modules_dependant_objects_paths))
     fixtures = [from_parameter(parameter,
                                namespace=namespace)
                 for parameter in parameters]
