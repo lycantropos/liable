@@ -28,7 +28,8 @@ from liable import (modules,
                     files,
                     catalog,
                     functions,
-                    strings)
+                    strings,
+                    test_cases)
 from liable.utils import (is_python_module,
                           merge_mappings,
                           fix_code)
@@ -131,17 +132,17 @@ def generate_tests(spaces_count: int,
     modules_namespaces = map(namespaces.from_module,
                              map(modules.from_path, modules_paths))
     modules_namespaces = map(add_utilities, modules_namespaces)
-    test_cases_generator = partial(generate_test_cases,
+    test_cases_generator = partial(test_cases.from_functions,
                                    built_ins=built_ins,
                                    spaces_count=spaces_count)
     for namespace in modules_namespaces:
         module_functions = list(namespaces.inner_functions(namespace))
         try:
-            test_cases = test_cases_generator(module_functions,
-                                              namespace=namespace)
+            source = test_cases_generator(module_functions,
+                                          namespace=namespace)
         except ImportError as err:
             raise click.BadParameter(err) from err
-        click.echo(test_cases)
+        click.echo(source)
 
 
 def generate_test_cases(module_functions: Iterable[FunctionType],
