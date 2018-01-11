@@ -25,7 +25,10 @@ def is_python_module(path: str) -> bool:
     if not os.path.isfile(path):
         return False
     with open(path) as source_file:
-        source = source_file.read()
+        try:
+            source = source_file.read()
+        except UnicodeDecodeError:
+            return False
     try:
         arboretum.from_source(source,
                               file_name=path)
