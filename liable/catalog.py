@@ -12,6 +12,8 @@ from typing import (Optional,
                     Set,
                     List)
 
+import builtins
+
 from . import strings
 
 SEPARATOR = '.'
@@ -26,7 +28,7 @@ class PathType(enum.IntEnum):
 IMPORTS_TEMPLATES = {PathType.absolute: 'import {module}\n',
                      PathType.relative: 'from {module} import {objects}\n'}
 
-BUILT_IN_MODULE_NAME = None
+BUILT_IN_MODULE_NAME = builtins.__name__
 
 
 class ObjectPath(NamedTuple):
