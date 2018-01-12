@@ -84,12 +84,10 @@ class FunctionCall:
 def dependants_paths(functions: Iterable[FunctionType],
                      *,
                      built_ins: NamespaceType,
-                     namespace: NamespaceType,
-                     generic_return_type: bool
+                     namespace: NamespaceType
                      ) -> Iterator[catalog.ObjectPath]:
     dependencies_detector = partial(dependencies,
-                                    namespace=namespace,
-                                    generic_return_type=generic_return_type)
+                                    namespace=namespace)
     signatures_dependants = chain.from_iterable(map(dependencies_detector,
                                                     functions))
     namespace = merge_mappings(built_ins, namespace)
@@ -106,8 +104,7 @@ def dependants_paths(functions: Iterable[FunctionType],
 
 def dependencies(function: FunctionType,
                  *,
-                 namespace: NamespaceType,
-                 generic_return_type: bool) -> Iterator[Any]:
+                 namespace: NamespaceType) -> Iterator[Any]:
     yield function
     function_signature = signature(function)
     parameters = function_signature.parameters
@@ -116,7 +113,7 @@ def dependencies(function: FunctionType,
                                 namespace=namespace)
     yield from chain.from_iterable(map(annotation_walker, annotations))
     return_type = function_signature.return_type
-    if not generic_return_type and is_generic(return_type.origin):
+    if is_generic(return_type.origin):
         yield from return_type.bases
         return
     yield from annotation_walker(return_type)

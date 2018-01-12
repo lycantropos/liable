@@ -32,8 +32,7 @@ def from_functions(module_functions: Iterable[FunctionType],
                    spaces_count: int) -> str:
     dependants_paths = functions.dependants_paths(module_functions,
                                                   built_ins=built_ins,
-                                                  namespace=namespace,
-                                                  generic_return_type=False)
+                                                  namespace=namespace)
     dependants_paths = catalog.modules_objects_paths(dependants_paths)
     imports = chain.from_iterable(starmap(catalog.to_imports,
                                           dependants_paths.values()))
