@@ -112,7 +112,7 @@ def generate_utilities(target_directory: Optional[str],
     except OSError as err:
         raise click.BadParameter(err) from err
 
-    modules_namespaces = modules_paths_to_namespaces(modules_paths)
+    modules_namespaces = list(modules_paths_to_namespaces(modules_paths))
     modules_functions = chain.from_iterable(map(namespaces.inner_functions,
                                                 modules_namespaces))
     modules_namespace = merge_mappings(*modules_namespaces)
