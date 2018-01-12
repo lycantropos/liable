@@ -9,6 +9,7 @@ from typing import (Optional,
                     Iterator,
                     NamedTuple,
                     Dict,
+                    Set,
                     List)
 
 from . import strings
@@ -100,8 +101,8 @@ def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
 
 
 def modules_objects_paths(objects_paths: Iterable[ObjectPath]
-                          ) -> Dict[str, List[ObjectPath]]:
+                          ) -> Dict[str, Set[ObjectPath]]:
     result = defaultdict(list)
     for object_path in objects_paths:
         result[object_path.module].append(object_path)
-    return result
+    return dict(zip(result.keys(), map(set, result.values())))
