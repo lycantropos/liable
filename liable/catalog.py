@@ -41,6 +41,10 @@ class ObjectPath(NamedTuple):
             return self.module + SEPARATOR + self.object
 
 
+def is_absolute(object_path: ObjectPath) -> bool:
+    return object_path.type == PathType.absolute
+
+
 def to_relative(path: str,
                 *,
                 system_paths: Iterable[str] = sys.path) -> str:
@@ -87,8 +91,6 @@ def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
             err_msg = 'No modules paths found.'
         raise ValueError(err_msg) from err
 
-    def is_absolute(object_path: ObjectPath) -> bool:
-        return object_path.type == PathType.absolute
 
     non_absolute_paths = list(filterfalse(is_absolute, module_paths))
     if non_absolute_paths:
