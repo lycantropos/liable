@@ -1,10 +1,12 @@
 import os
 from functools import partial
+from importlib._bootstrap_external import SOURCE_SUFFIXES
 from typing import Iterator
 
 from . import strings
 
 INIT_MODULE_FILE_NAME = '__init__.py'
+SOURCE_EXTENSION = SOURCE_SUFFIXES[0]
 
 
 def find_files(path: str,
