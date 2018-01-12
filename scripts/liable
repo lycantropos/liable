@@ -7,6 +7,8 @@ from itertools import (filterfalse,
                        chain)
 from typing import (Any,
                     Optional,
+                    Iterable,
+                    Iterator,
                     List)
 
 import click
@@ -21,6 +23,7 @@ from liable import (modules,
                     strategies,
                     fixtures,
                     test_cases)
+from liable.types import NamespaceType
 from liable.utils import (is_python_module,
                           merge_mappings)
 from liable.validators import (validate_paths,
@@ -199,6 +202,14 @@ def generate_tests(target_directory: Optional[str],
             write_source(source,
                          top_directory=target_directory,
                          module_full_name=catalog.to_module_full_name(path))
+
+
+def modules_paths_to_namespaces(modules_paths: Iterable[str]
+                                ) -> Iterator[NamespaceType]:
+    add_utilities = partial(merge_mappings, utilities)
+    modules_namespaces = map(namespaces.from_module,
+                             map(modules.from_path, modules_paths))
+    yield from map(add_utilities, modules_namespaces)
 
 
 def write_source(source: str,
