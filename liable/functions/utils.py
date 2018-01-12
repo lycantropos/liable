@@ -21,11 +21,12 @@ from liable.utils import merge_mappings
 from .detectors import (supports_to_string,
                         is_literal)
 
-ARGUMENTS_TEMPLATES = {inspect._POSITIONAL_ONLY: '{argument}',
-                       inspect._POSITIONAL_OR_KEYWORD: '{argument}',
-                       inspect._VAR_POSITIONAL: '*{argument}',
-                       inspect._KEYWORD_ONLY: '{parameter}={argument}',
-                       inspect._VAR_KEYWORD: '**{argument}'}
+ARGUMENTS_TEMPLATES = {
+    inspect._POSITIONAL_ONLY: '{argument}',
+    inspect._POSITIONAL_OR_KEYWORD: '{parameter}={argument}',
+    inspect._VAR_POSITIONAL: '*{argument}',
+    inspect._KEYWORD_ONLY: '{parameter}={argument}',
+    inspect._VAR_KEYWORD: '**{argument}'}
 
 
 class Signature(NamedTuple):
