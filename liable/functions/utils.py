@@ -95,11 +95,7 @@ def dependants_paths(functions: Iterable[FunctionType],
                                  namespace=namespace)
     result = set(chain(map(object_path_seeker,
                            signatures_dependants)))
-
-    def is_built_in_object_path(object_path: catalog.ObjectPath) -> bool:
-        return object_path in built_ins
-
-    yield from filterfalse(is_built_in_object_path, result)
+    yield from filterfalse(catalog.is_built_in, result)
 
 
 def dependencies(function: FunctionType,
