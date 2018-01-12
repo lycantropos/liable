@@ -1,6 +1,7 @@
 import inspect
 from functools import partial
 from itertools import (chain,
+                       filterfalse,
                        starmap)
 from typing import Iterable
 
@@ -37,6 +38,8 @@ def from_parameters(parameters: Iterable[inspect.Parameter],
     ]
     dependant_objects_paths = chain(additional_objects_paths,
                                     annotations_paths)
+    dependant_objects_paths = filterfalse(catalog.is_built_in,
+                                          dependant_objects_paths)
     modules_dependant_objects_paths = (
         catalog.modules_objects_paths(dependant_objects_paths).values())
     imports = chain.from_iterable(starmap(catalog.to_imports,
