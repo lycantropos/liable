@@ -122,7 +122,8 @@ templates = {
 }
 
 
-def to_template(annotation: annotator.Annotation) -> functions.FunctionCall:
+def to_template(annotation: annotator.Annotation
+                ) -> functions.FunctionCall:
     try:
         cls, = annotation.bases
     except ValueError as err:
