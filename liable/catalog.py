@@ -26,6 +26,8 @@ class PathType(enum.IntEnum):
 IMPORTS_TEMPLATES = {PathType.absolute: 'import {module}\n',
                      PathType.relative: 'from {module} import {objects}\n'}
 
+BUILT_IN_MODULE_NAME = None
+
 
 class ObjectPath(NamedTuple):
     module: Optional[str]
@@ -43,6 +45,10 @@ class ObjectPath(NamedTuple):
 
 def is_absolute(object_path: ObjectPath) -> bool:
     return object_path.type == PathType.absolute
+
+
+def is_built_in(object_path: ObjectPath) -> bool:
+    return object_path.module == BUILT_IN_MODULE_NAME
 
 
 def to_relative(path: str,
