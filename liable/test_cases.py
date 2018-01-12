@@ -1,17 +1,19 @@
 import inspect
 import os
 from functools import partial
+from importlib._bootstrap_external import SOURCE_SUFFIXES
 from itertools import (chain,
                        starmap)
 from types import FunctionType
 from typing import (Iterable,
                     Type)
 
-from . import (namespaces,
+from . import (annotator,
                functions,
+               namespaces,
                catalog,
-               annotator,
-               strings)
+               strings,
+               file_system)
 from .utils import (fix_code,
                     merge_mappings)
 
@@ -108,6 +110,12 @@ def from_function(function: FunctionType,
                            return_type=return_type)
 
 
-def normalize_path(module_path: str) -> str:
-    *sub_directories, module_file_name = module_path.split(os.sep)
-    return os.path.join(*sub_directories, 'test_' + module_file_name)
+def normalize_path(module_path: str,
+                   *,
+                   source_extension: str = file_system.SOURCE_EXTENSION
+                   ) -> str:
+    module_path = catalog.to_relative(module_path)
+    module_full_name = catalog.to_module_full_name(module_path)
+    *sup_modules, module_name = module_full_name.split(catalog.SEPARATOR)
+    module_file_name = 'test_' + module_name + source_extension
+    return os.path.join(*sup_modules, module_file_name)
