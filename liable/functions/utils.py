@@ -28,6 +28,9 @@ ARGUMENTS_TEMPLATES = {
     inspect._KEYWORD_ONLY: '{parameter}={argument}',
     inspect._VAR_KEYWORD: '**{argument}'}
 
+VARIADIC_PARAMETERS_KINDS = {inspect._VAR_POSITIONAL,
+                             inspect._VAR_KEYWORD}
+
 
 class Signature(NamedTuple):
     parameters: List[inspect.Parameter]

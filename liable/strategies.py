@@ -141,8 +141,9 @@ def to_template(annotation: annotator.Annotation
         arguments = [
             functions.Argument(name=parameter.name,
                                value=to_template(parameter.annotation),
-                               kind=parameter.kind)
-            for parameter in parameters]
+                               kind=inspect._POSITIONAL_OR_KEYWORD)
+            for parameter in parameters
+            if parameter.kind not in functions.VARIADIC_PARAMETERS_KINDS]
         template = functions.FunctionCall(strategies.builds,
                                           functions.Argument(name='target',
                                                              value=cls),
