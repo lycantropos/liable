@@ -73,9 +73,11 @@ def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
         module_name, = modules_names
     except ValueError as err:
         if modules_names:
+            modules_names_str = strings.join('"' + name + '"'
+                                             for name in modules_names)
             err_msg = ('Found modules paths for different modules: '
                        '{modules}.'
-                       .format(modules=strings.join(modules_names)))
+                       .format(modules=modules_names_str))
         else:
             err_msg = 'No modules paths found.'
         raise ValueError(err_msg) from err
