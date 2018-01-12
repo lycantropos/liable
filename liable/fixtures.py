@@ -21,7 +21,6 @@ TEMPLATE = ('@pytest.fixture(scope=\'function\')\n'
 def from_parameters(parameters: Iterable[inspect.Parameter],
                     *,
                     namespace: NamespaceType) -> str:
-    parameters = list(parameters)
     annotations = chain.from_iterable(annotator.walk(parameter.annotation,
                                                      namespace=namespace)
                                       for parameter in parameters)
