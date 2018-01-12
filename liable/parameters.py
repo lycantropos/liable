@@ -13,6 +13,7 @@ from typing import (Any,
 
 from . import (annotator,
                functions,
+               catalog,
                namespaces)
 from .types import NamespaceType
 from .utils import merge_mappings
@@ -30,7 +31,7 @@ def combine(parameters: Iterable[inspect.Parameter],
         path = namespaces.search_path(cls,
                                       namespace=merge_mappings(built_ins,
                                                                namespace))
-        if path in built_ins:
+        if catalog.is_built_in(path):
             module = 'utils'
         else:
             module = path.module
