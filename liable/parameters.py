@@ -11,12 +11,11 @@ from typing import (Any,
                     Set,
                     List)
 
-from liable import namespaces
-from liable.utils import merge_mappings
-
 from . import (annotator,
-               functions)
+               functions,
+               namespaces)
 from .types import NamespaceType
+from .utils import merge_mappings
 
 
 def combine(parameters: Iterable[inspect.Parameter],
