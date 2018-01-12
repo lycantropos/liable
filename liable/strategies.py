@@ -1,6 +1,11 @@
 import collections
 import inspect
 import operator
+from datetime import (time,
+                      timedelta,
+                      date,
+                      datetime)
+from fractions import Fraction
 from functools import partial
 from itertools import (chain,
                        starmap)
@@ -9,6 +14,7 @@ from typing import (Iterable,
                     Dict,
                     List)
 
+from decimal import Decimal
 from hypothesis import strategies
 
 from . import (functions,
@@ -112,13 +118,20 @@ templates = {
     bool: functions.FunctionCall(strategies.booleans),
     str: functions.FunctionCall(strategies.text),
     float: functions.FunctionCall(strategies.floats),
+    Decimal: functions.FunctionCall(strategies.decimals),
+    Fraction: functions.FunctionCall(strategies.fractions),
     None: functions.FunctionCall(strategies.none),
     collections.Iterator: functions.FunctionCall(strategies.iterables),
     collections.Iterable: functions.FunctionCall(strategies.iterables),
     dict: functions.FunctionCall(strategies.dictionaries),
     tuple: functions.FunctionCall(strategies.tuples),
+    frozenset: functions.FunctionCall(strategies.frozensets),
     set: functions.FunctionCall(strategies.sets),
     list: functions.FunctionCall(strategies.lists),
+    timedelta: functions.FunctionCall(strategies.timedeltas),
+    time: functions.FunctionCall(strategies.times),
+    date: functions.FunctionCall(strategies.dates),
+    datetime: functions.FunctionCall(strategies.datetimes),
 }
 
 
