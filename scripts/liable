@@ -184,7 +184,9 @@ def generate_tests(parent_directory: Optional[str],
 def write_source(source: str,
                  *,
                  top_directory: str,
-                 module_full_name: str) -> None:
+                 module_full_name: str,
+                 source_extension: str = file_system.SOURCE_EXTENSION
+                 ) -> None:
     *sub_directories, module_name = module_full_name.split(catalog.SEPARATOR)
     file_system.make_packages(top_directory, *sub_directories)
     module_directory = os.path.join(top_directory,
@@ -192,7 +194,7 @@ def write_source(source: str,
     os.makedirs(module_directory,
                 exist_ok=True)
     module_path = os.path.join(module_directory,
-                               module_name + '.py')
+                               module_name + source_extension)
     with open(module_path, mode='w') as module_file:
         module_file.write(source)
 
