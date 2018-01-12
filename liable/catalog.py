@@ -35,7 +35,7 @@ class ObjectPath(NamedTuple):
     type: PathType
 
     def __str__(self):
-        if is_absolute(self):
+        if self.object is None:
             return self.module
         elif is_built_in(self):
             return self.object
