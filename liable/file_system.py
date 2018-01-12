@@ -4,6 +4,8 @@ from typing import Iterator
 
 from . import strings
 
+INIT_MODULE_FILE_NAME = '__init__.py'
+
 
 def find_files(path: str,
                *,
@@ -36,6 +38,7 @@ def make_packages(directory: str,
         make_init_module(package_path)
 
 
-def make_init_module(directory: str) -> None:
-    path = os.path.join(directory, '__init__.py')
+def make_init_module(directory: str,
+                     file_name: str = INIT_MODULE_FILE_NAME) -> None:
+    path = os.path.join(directory, file_name)
     open(path, mode='a').close()
