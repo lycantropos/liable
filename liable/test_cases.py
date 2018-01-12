@@ -27,18 +27,15 @@ ASSERTION_TEMPLATE = 'assert {statement}\n'
 
 def from_functions(module_functions: Iterable[FunctionType],
                    *,
-                   built_ins: NamespaceType,
                    namespace: NamespaceType,
                    spaces_count: int) -> str:
     dependants_paths = functions.dependants_paths(module_functions,
-                                                  built_ins=built_ins,
                                                   namespace=namespace)
     dependants_paths = catalog.modules_objects_paths(dependants_paths)
     imports = chain.from_iterable(starmap(catalog.to_imports,
                                           dependants_paths.values()))
     test_case_factory = partial(from_function,
                                 spaces_count=spaces_count,
-                                built_ins=built_ins,
                                 namespace=namespace)
     test_cases = map(test_case_factory, module_functions)
     code_blocks = chain(imports, test_cases)
@@ -47,11 +44,8 @@ def from_functions(module_functions: Iterable[FunctionType],
 
 def from_function(function: FunctionType,
                   *,
-                  built_ins: NamespaceType,
                   namespace: NamespaceType,
                   spaces_count: int) -> str:
-    namespace = merge_mappings(built_ins, namespace)
-
     def to_name(annotation: Type) -> str:
         annotation = annotator.normalize(annotation)
         return annotation.to_string(namespace)

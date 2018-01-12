@@ -118,8 +118,8 @@ def generate_utilities(target_directory: Optional[str],
     modules_namespace = merge_mappings(*modules_namespaces)
     modules_parameters = parameters.from_functions(modules_functions)
     built_ins = namespaces.built_ins()
+    modules_namespace = merge_mappings(built_ins, modules_namespace)
     modules_parameters = parameters.combine(modules_parameters,
-                                            built_ins=built_ins,
                                             namespace=modules_namespace)
     strategies_directory = os.path.join(target_directory, 'strategies')
     fixtures_directory = os.path.join(target_directory, 'fixtures')
@@ -132,7 +132,6 @@ def generate_utilities(target_directory: Optional[str],
     with open(init_module_path, mode='a') as init_module_file:
         init_module_file.write(strategies.init_module(modules_parameters))
 
-    modules_namespace = merge_mappings(built_ins, modules_namespace)
     for module_full_name, module_parameters in modules_parameters.items():
         write_source(strategies.from_parameters(module_parameters,
                                                 namespace=modules_namespace),
@@ -173,13 +172,13 @@ def generate_tests(target_directory: Optional[str],
 
     built_ins = namespaces.built_ins()
     test_cases_generator = partial(test_cases.from_functions,
-                                   built_ins=built_ins,
                                    spaces_count=spaces_count)
     for path, namespace in zip(modules_paths,
                                modules_paths_to_namespaces(modules_paths)):
         module_functions = list(namespaces.inner_functions(namespace))
         if not module_functions:
             continue
+        namespace = merge_mappings(built_ins, namespace)
         try:
             source = test_cases_generator(module_functions,
                                           namespace=namespace)

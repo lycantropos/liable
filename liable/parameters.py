@@ -16,12 +16,10 @@ from . import (annotator,
                catalog,
                namespaces)
 from .types import NamespaceType
-from .utils import merge_mappings
 
 
 def combine(parameters: Iterable[inspect.Parameter],
             *,
-            built_ins: NamespaceType,
             namespace: NamespaceType
             ) -> Dict[str, List[inspect.Parameter]]:
     result = defaultdict(list)
@@ -29,8 +27,7 @@ def combine(parameters: Iterable[inspect.Parameter],
         annotation = parameter.annotation
         cls = annotation.bases[-1]
         path = namespaces.search_path(cls,
-                                      namespace=merge_mappings(built_ins,
-                                                               namespace))
+                                      namespace=namespace)
         if catalog.is_built_in(path):
             module = 'utils'
         else:

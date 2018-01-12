@@ -83,14 +83,12 @@ class FunctionCall:
 
 def dependants_paths(functions: Iterable[FunctionType],
                      *,
-                     built_ins: NamespaceType,
                      namespace: NamespaceType
                      ) -> Iterator[catalog.ObjectPath]:
     dependencies_detector = partial(dependencies,
                                     namespace=namespace)
     signatures_dependants = chain.from_iterable(map(dependencies_detector,
                                                     functions))
-    namespace = merge_mappings(built_ins, namespace)
     object_path_seeker = partial(namespaces.search_path,
                                  namespace=namespace)
     result = set(chain(map(object_path_seeker,
