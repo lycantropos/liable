@@ -143,10 +143,10 @@ def generate_tests(parent_directory: Optional[str],
     os.makedirs(fixtures_directory,
                 exist_ok=True)
 
-    strategies_init_module_path = os.path.join(strategies_directory,
-                                               '__init__.py')
+    init_module_path = os.path.join(strategies_directory,
+                                    file_system.INIT_MODULE_FILE_NAME)
     # TODO: merge related or duplicated imports
-    with open(strategies_init_module_path, mode='a') as init_module_file:
+    with open(init_module_path, mode='a') as init_module_file:
         init_module_file.write(strategies.init_module(modules_parameters))
 
     modules_namespace = merge_mappings(built_ins, modules_namespace)
