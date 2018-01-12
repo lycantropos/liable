@@ -87,21 +87,16 @@ utilities = {catalog.ObjectPath(module=collections.__name__,
                                 type=catalog.PathType.relative): Optional}
 
 
-@main.command(name='tests')
+@main.command(name='utilities')
 @click.option('--target-directory', '-t',
               type=click.Path(exists=True),
               default=None,
               help='Target directory.')
-@click.option('--spaces-count', '-s',
-              type=click.IntRange(1),
-              default=4,
-              help='Number of spaces used for indentation.')
 @click.argument('modules_paths',
                 nargs=-1)
-def generate_tests(target_directory: Optional[str],
-                   spaces_count: int,
-                   modules_paths: List[str]) -> None:
-    """Generates test cases skeletons for modules."""
+def generate_utilities(target_directory: Optional[str],
+                       modules_paths: List[str]) -> None:
+    """Generates strategies & fixtures skeletons from modules functions."""
     if not modules_paths:
         err_msg = 'No paths specified.'
         raise click.BadParameter(err_msg)
@@ -151,6 +146,41 @@ def generate_tests(target_directory: Optional[str],
                                               namespace=modules_namespace),
                      top_directory=fixtures_directory,
                      module_full_name=module_full_name)
+
+
+@main.command(name='tests')
+@click.option('--target-directory', '-t',
+              type=click.Path(exists=True),
+              default=None,
+              help='Target directory.')
+@click.option('--spaces-count', '-s',
+              type=click.IntRange(1),
+              default=4,
+              help='Number of spaces used for indentation.')
+@click.argument('modules_paths',
+                nargs=-1)
+def generate_tests(target_directory: Optional[str],
+                   spaces_count: int,
+                   modules_paths: List[str]) -> None:
+    """Generates test cases skeletons for modules."""
+    if not modules_paths:
+        err_msg = 'No paths specified.'
+        raise click.BadParameter(err_msg)
+
+    modules_paths = list(map(os.path.abspath, modules_paths))
+
+    try:
+        validate_paths(modules_paths)
+        validate_modules_paths(modules_paths)
+    except OSError as err:
+        raise click.BadParameter(err) from err
+
+    built_ins = namespaces.built_ins()
+    add_utilities = partial(merge_mappings, utilities)
+    modules_namespaces = map(namespaces.from_module,
+                             map(modules.from_path, modules_paths))
+    modules_namespaces = dict(zip(modules_paths,
+                                  map(add_utilities, modules_namespaces)))
 
     test_cases_generator = partial(test_cases.from_functions,
                                    built_ins=built_ins,
