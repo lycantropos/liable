@@ -10,6 +10,7 @@ from . import (annotator,
                namespaces,
                catalog,
                strategies)
+from .types import NamespaceType
 from .utils import fix_code
 
 TEMPLATE = ('@pytest.fixture(scope=\'function\')\n'
@@ -19,7 +20,7 @@ TEMPLATE = ('@pytest.fixture(scope=\'function\')\n'
 
 def from_parameters(parameters: Iterable[inspect.Parameter],
                     *,
-                    namespace: namespaces.NamespaceType) -> str:
+                    namespace: NamespaceType) -> str:
     parameters = list(parameters)
     annotations = chain.from_iterable(annotator.walk(parameter.annotation,
                                                      namespace=namespace)
@@ -51,7 +52,7 @@ def from_parameters(parameters: Iterable[inspect.Parameter],
 
 def from_parameter(parameter: inspect.Parameter,
                    *,
-                   namespace: namespaces.NamespaceType) -> str:
+                   namespace: NamespaceType) -> str:
     name = parameter.name
     strategy_name = strategies.to_strategy_name(name)
     annotation = parameter.annotation

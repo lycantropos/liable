@@ -8,7 +8,7 @@ from typing import (TypingMeta,
                     Iterator,
                     Tuple)
 
-from liable import namespaces
+from liable.types import NamespaceType
 from liable.utils import to_name
 
 from . import annotations
@@ -75,7 +75,7 @@ def to_annotation(object_: Any) -> Annotation:
 
 def walk(annotation: Annotation,
          *,
-         namespace: namespaces.NamespaceType) -> Iterator[Any]:
+         namespace: NamespaceType) -> Iterator[Any]:
     if annotation.origin in namespace.values():
         yield annotation.origin
         return

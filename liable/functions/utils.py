@@ -15,6 +15,7 @@ from liable import (annotator,
                     catalog,
                     strings)
 from liable.annotator.detectors import is_generic
+from liable.types import NamespaceType
 from liable.utils import merge_mappings
 
 from .detectors import (supports_to_string,
@@ -42,7 +43,7 @@ class Argument:
         self.value = value
         self.kind = kind
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         value = self.value
         if supports_to_string(value):
             value_name = value.to_string(namespace)
@@ -66,7 +67,7 @@ class FunctionCall:
         self.function = function
         self.arguments = arguments
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         function_name = namespaces.search_name(self.function,
                                                namespace=namespace)
         arguments_str = strings.join(parameter.to_string(namespace)
@@ -78,8 +79,8 @@ class FunctionCall:
 
 def dependants_paths(functions: Iterable[FunctionType],
                      *,
-                     built_ins: namespaces.NamespaceType,
-                     namespace: namespaces.NamespaceType,
+                     built_ins: NamespaceType,
+                     namespace: NamespaceType,
                      generic_return_type: bool
                      ) -> Iterator[catalog.ObjectPath]:
     dependencies_detector = partial(dependencies,
@@ -101,7 +102,7 @@ def dependants_paths(functions: Iterable[FunctionType],
 
 def dependencies(function: FunctionType,
                  *,
-                 namespace: namespaces.NamespaceType,
+                 namespace: NamespaceType,
                  generic_return_type: bool) -> Iterator[Any]:
     yield function
     function_signature = signature(function)

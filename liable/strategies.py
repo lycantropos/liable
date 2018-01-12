@@ -16,6 +16,7 @@ from . import (functions,
                namespaces,
                catalog,
                strings)
+from .types import NamespaceType
 from .utils import (fix_code,
                     merge_mappings)
 
@@ -36,7 +37,7 @@ def init_module(modules_parameters: Dict[str, List[inspect.Parameter]]) -> str:
 
 def from_parameters(parameters: Iterable[inspect.Parameter],
                     *,
-                    namespace: namespaces.NamespaceType) -> str:
+                    namespace: NamespaceType) -> str:
     parameters = list(parameters)
     code_blocks = chain(module_imports(parameters,
                                        namespace=namespace),
@@ -55,7 +56,7 @@ utilities = {hypothesis_strategies_path: strategies}
 
 def module_imports(parameters: Iterable[inspect.Parameter],
                    *,
-                   namespace: namespaces.NamespaceType) -> Iterator[str]:
+                   namespace: NamespaceType) -> Iterator[str]:
     namespace = merge_mappings(namespace, utilities)
     annotations = map(operator.attrgetter('annotation'), parameters)
     bases = [annotation.bases[-1] for annotation in annotations]
@@ -77,7 +78,7 @@ def module_imports(parameters: Iterable[inspect.Parameter],
 
 def module_strategies_definitions(parameters: Iterable[inspect.Parameter],
                                   *,
-                                  namespace: namespaces.NamespaceType
+                                  namespace: NamespaceType
                                   ) -> Iterator[str]:
     namespace = merge_mappings(namespace, utilities)
     strategy_definition_factory = partial(strategy_definition,
@@ -87,7 +88,7 @@ def module_strategies_definitions(parameters: Iterable[inspect.Parameter],
 
 def strategy_definition(parameter: inspect.Parameter,
                         *,
-                        namespace: namespaces.NamespaceType) -> str:
+                        namespace: NamespaceType) -> str:
     strategy_name = to_strategy_name(parameter.name)
     template = to_template(parameter.annotation)
     value = template.to_string(namespace)

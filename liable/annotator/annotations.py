@@ -10,6 +10,8 @@ from typing import (TypingMeta,
 
 from liable import (namespaces,
                     strings)
+from liable.types import NamespaceType
+
 from .base import Annotation
 
 ELLIPSIS_STRING = '...'
@@ -20,7 +22,7 @@ class Raw(Annotation):
                  origin: Type):
         super().__init__(origin)
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         return namespaces.search_name(self.origin,
                                       namespace=namespace)
 
@@ -34,7 +36,7 @@ class PlainAnnotation(Annotation):
                  origin: TypingMeta):
         super().__init__(origin)
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         return namespaces.search_name(self.origin,
                                       namespace=namespace)
 
@@ -47,7 +49,7 @@ class Any(Annotation):
     def __init__(self):
         super().__init__(AnyType)
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         return namespaces.search_name(self.origin,
                                       namespace=namespace)
 
@@ -63,7 +65,7 @@ class Union(Annotation):
         super().__init__(origin)
         self.arguments = arguments
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         origin = self.origin
 
         if namespaces.is_object_relative(origin,
@@ -95,7 +97,7 @@ class Optional(Annotation):
         super().__init__(origin)
         self.arguments = arguments
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         origin = self.origin
 
         if namespaces.is_object_relative(origin,
@@ -136,7 +138,7 @@ class Callable(Annotation):
         self.parameters = parameters
         self.return_type = return_type
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         origin = self.origin
 
         if namespaces.is_object_relative(origin,
@@ -172,7 +174,7 @@ class PlainGeneric(Annotation):
                  origin: TypingMeta):
         super().__init__(origin)
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         return namespaces.search_name(self.origin,
                                       namespace=namespace)
 
@@ -188,7 +190,7 @@ class Generic(Annotation):
         super().__init__(origin)
         self.arguments = arguments
 
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         origin = self.origin
 
         if namespaces.is_object_relative(origin,

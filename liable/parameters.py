@@ -16,12 +16,13 @@ from liable.utils import merge_mappings
 
 from . import (annotator,
                functions)
+from .types import NamespaceType
 
 
 def combine(parameters: Iterable[inspect.Parameter],
             *,
-            built_ins: namespaces.NamespaceType,
-            namespace: namespaces.NamespaceType
+            built_ins: NamespaceType,
+            namespace: NamespaceType
             ) -> Dict[str, List[inspect.Parameter]]:
     result = defaultdict(list)
     for parameter in parameters:

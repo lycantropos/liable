@@ -5,7 +5,7 @@ from typing import (TypingMeta,
                     Type,
                     Tuple)
 
-from liable import namespaces
+from liable.types import NamespaceType
 
 
 class Annotation(ABC):
@@ -13,7 +13,7 @@ class Annotation(ABC):
         self.origin = origin
 
     @abstractmethod
-    def to_string(self, namespace: namespaces.NamespaceType) -> str:
+    def to_string(self, namespace: NamespaceType) -> str:
         raise NotImplemented
 
     @property

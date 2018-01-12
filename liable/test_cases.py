@@ -1,7 +1,6 @@
 import inspect
 import os
 from functools import partial
-from importlib._bootstrap_external import SOURCE_SUFFIXES
 from itertools import (chain,
                        starmap)
 from types import FunctionType
@@ -10,10 +9,10 @@ from typing import (Iterable,
 
 from . import (annotator,
                functions,
-               namespaces,
                catalog,
                strings,
                file_system)
+from .types import NamespaceType
 from .utils import (fix_code,
                     merge_mappings)
 
@@ -28,8 +27,8 @@ ASSERTION_TEMPLATE = 'assert {statement}\n'
 
 def from_functions(module_functions: Iterable[FunctionType],
                    *,
-                   built_ins: namespaces.NamespaceType,
-                   namespace: namespaces.NamespaceType,
+                   built_ins: NamespaceType,
+                   namespace: NamespaceType,
                    spaces_count: int) -> str:
     dependants_paths = functions.dependants_paths(module_functions,
                                                   built_ins=built_ins,
@@ -49,8 +48,8 @@ def from_functions(module_functions: Iterable[FunctionType],
 
 def from_function(function: FunctionType,
                   *,
-                  built_ins: namespaces.NamespaceType,
-                  namespace: namespaces.NamespaceType,
+                  built_ins: NamespaceType,
+                  namespace: NamespaceType,
                   spaces_count: int) -> str:
     namespace = merge_mappings(built_ins, namespace)
 

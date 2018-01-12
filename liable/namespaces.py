@@ -8,8 +8,9 @@ from types import (FunctionType,
 from typing import (Any,
                     Iterable,
                     Iterator,
-                    Dict,
                     Tuple)
+
+from liable.types import NamespaceType
 
 from . import (catalog,
                modules,
@@ -17,8 +18,6 @@ from . import (catalog,
 from .utils import (to_name,
                     merge_mappings)
 from .validators import validate_modules
-
-NamespaceType = Dict[catalog.ObjectPath, Any]
 
 
 def from_module(module: ModuleType) -> NamespaceType:
