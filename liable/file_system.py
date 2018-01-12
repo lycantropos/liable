@@ -5,8 +5,8 @@ from typing import Iterator
 
 from . import strings
 
-INIT_MODULE_FILE_NAME = '__init__.py'
 SOURCE_EXTENSION = SOURCE_SUFFIXES[0]
+INIT_MODULE_FILE_NAME = '__init__' + SOURCE_EXTENSION
 
 
 def find_files(path: str,
