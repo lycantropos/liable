@@ -123,10 +123,8 @@ def generate_utilities(target_directory: Optional[str],
                                             namespace=modules_namespace)
     strategies_directory = os.path.join(target_directory, 'strategies')
     fixtures_directory = os.path.join(target_directory, 'fixtures')
-    os.makedirs(strategies_directory,
-                exist_ok=True)
-    os.makedirs(fixtures_directory,
-                exist_ok=True)
+    file_system.make_packages(strategies_directory)
+    file_system.make_packages(fixtures_directory)
 
     init_module_path = os.path.join(strategies_directory,
                                     file_system.INIT_MODULE_FILE_NAME)
