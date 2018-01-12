@@ -82,6 +82,8 @@ def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
             err_msg = 'No modules paths found.'
         raise ValueError(err_msg) from err
 
+    if is_built_in(module_paths[0]):
+        return
 
     non_absolute_paths = list(filterfalse(is_absolute, module_paths))
     if non_absolute_paths:
