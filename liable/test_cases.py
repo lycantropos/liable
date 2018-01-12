@@ -113,7 +113,7 @@ def normalize_path(module_path: str,
                    *,
                    source_extension: str = file_system.SOURCE_EXTENSION
                    ) -> str:
-    module_path = catalog.to_relative(module_path)
+    module_path = file_system.to_relative(module_path)
     module_full_name = catalog.to_module_full_name(module_path)
     *sup_modules, module_name = module_full_name.split(catalog.SEPARATOR)
     module_file_name = 'test_' + module_name + source_extension

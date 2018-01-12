@@ -2,7 +2,6 @@ import enum
 import inspect
 import operator
 import os
-import sys
 from collections import defaultdict
 from itertools import filterfalse
 from typing import (Optional,
@@ -49,22 +48,6 @@ def is_absolute(object_path: ObjectPath) -> bool:
 
 def is_built_in(object_path: ObjectPath) -> bool:
     return object_path.module == BUILT_IN_MODULE_NAME
-
-
-def to_relative(path: str,
-                *,
-                system_paths: Iterable[str] = sys.path) -> str:
-    try:
-        root_path = max((system_path
-                         for system_path in system_paths
-                         if path.startswith(system_path)),
-                        key=len)
-    except ValueError as err:
-        err_msg = ('Invalid module path: "{path}". '
-                   'No root path found in `Python` system paths.'
-                   .format(path=path))
-        raise ModuleNotFoundError(err_msg) from err
-    return os.path.normpath(os.path.relpath(path, root_path))
 
 
 def to_module_full_name(path: str) -> str:

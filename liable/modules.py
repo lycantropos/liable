@@ -7,6 +7,7 @@ from typing import (Any,
                     Dict)
 
 from . import (catalog,
+               file_system,
                strings)
 
 
@@ -15,7 +16,7 @@ def from_name(full_name: str) -> ModuleType:
 
 
 def from_path(path: str) -> ModuleType:
-    full_name = catalog.to_module_full_name(catalog.to_relative(path))
+    full_name = catalog.to_module_full_name(file_system.to_relative(path))
     return from_name(full_name)
 
 

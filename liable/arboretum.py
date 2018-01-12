@@ -14,10 +14,10 @@ from typing import (Union,
                     Iterator,
                     Tuple)
 
-from liable import strings
-
 from . import (catalog,
-               modules)
+               modules,
+               file_system,
+               strings)
 
 ImportType = Union[ast.Import, ast.ImportFrom]
 
@@ -118,14 +118,14 @@ def import_absolutizer(module_path: str
                               lineno=statement.lineno,
                               col_offset=statement.col_offset)
 
-    module_directory_path = os.path.normpath(os.path.dirname(module_path))
-    module_directory_relative_path = catalog.to_relative(module_directory_path)
+    directory_path = os.path.normpath(os.path.dirname(module_path))
+    directory_relative_path = file_system.to_relative(directory_path)
 
     def to_module_full_name(statement: ast.ImportFrom) -> str:
         result = statement.module
         if is_import_relative(statement):
             jumps = (os.pardir + os.sep) * (statement.level - 1)
-            module_path = os.path.join(module_directory_relative_path,
+            module_path = os.path.join(directory_relative_path,
                                        jumps,
                                        result or '')
             module_path = os.path.normpath(module_path)

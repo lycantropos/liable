@@ -1,7 +1,9 @@
 import os
+import sys
 from functools import partial
 from importlib._bootstrap_external import SOURCE_SUFFIXES
-from typing import Iterator
+from typing import (Iterable,
+                    Iterator)
 
 from . import strings
 
@@ -44,3 +46,19 @@ def make_init_module(directory: str,
                      file_name: str = INIT_MODULE_FILE_NAME) -> None:
     path = os.path.join(directory, file_name)
     open(path, mode='a').close()
+
+
+def to_relative(path: str,
+                *,
+                system_paths: Iterable[str] = sys.path) -> str:
+    try:
+        root_path = max((system_path
+                         for system_path in system_paths
+                         if path.startswith(system_path)),
+                        key=len)
+    except ValueError as err:
+        err_msg = ('Invalid module path: "{path}". '
+                   'No root path found in `Python` system paths.'
+                   .format(path=path))
+        raise ModuleNotFoundError(err_msg) from err
+    return os.path.normpath(os.path.relpath(path, root_path))
