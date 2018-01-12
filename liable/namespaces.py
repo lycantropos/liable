@@ -28,7 +28,7 @@ def from_module(module: ModuleType) -> NamespaceType:
 def built_ins(module: ModuleType = builtins) -> NamespaceType:
     module_map = dict(vars(module))
     module_map['...'] = module_map.pop('Ellipsis')
-    return {catalog.ObjectPath(module=None,
+    return {catalog.ObjectPath(module=catalog.BUILT_IN_MODULE_NAME,
                                object=name,
                                type=catalog.PathType.inner): content
             for name, content in module_map.items()}
