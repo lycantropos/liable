@@ -49,7 +49,7 @@ def to_relative(path: str,
                          for system_path in system_paths
                          if path.startswith(system_path)),
                         key=len)
-    except TypeError as err:
+    except ValueError as err:
         err_msg = ('Invalid module path: "{path}". '
                    'No root path found in `Python` system paths.'
                    .format(path=path))
