@@ -50,18 +50,26 @@ def from_function(function: FunctionType,
         return annotation.to_string(namespace)
 
     signature = inspect.signature(function)
-    function_parameters = signature.parameters.values()
-    test_parameters_str = strings.join(
-            PARAMETER_TEMPLATE.format(
-                    parameter=parameter.name,
-                    annotation=to_name(parameter.annotation)
-            )
-            for parameter in function_parameters)
-    function_arguments_str = strings.join(
+    parameters = signature.parameters.values()
+    parameters_str = strings.join(
+        PARAMETER_TEMPLATE.format(parameter=parameter.name,
+                                  annotation=to_name(parameter.annotation))
+        for parameter in parameters)
+    try:
+        parameter, = parameters
+    except ValueError:
+        arguments_str = strings.join(
             functions.ARGUMENTS_TEMPLATES[parameter.kind].format(
-                    parameter=parameter.name,
-                    argument=parameter.name)
-            for parameter in function_parameters)
+                parameter=parameter.name,
+                argument=parameter.name)
+            for parameter in parameters)
+    else:
+        kind = parameter.kind
+        if kind == inspect._POSITIONAL_OR_KEYWORD:
+            kind = inspect._POSITIONAL_ONLY
+        arguments_str = (functions.ARGUMENTS_TEMPLATES[kind]
+                         .format(parameter=parameter.name,
+                                 argument=parameter.name))
     return_annotation = signature.return_annotation
     return_annotation_bases = annotator.to_bases(return_annotation)
 
@@ -95,9 +103,9 @@ def from_function(function: FunctionType,
                 + tab + FUNCTION_CALL_TEMPLATE
                 + tab + assertion_template)
     return template.format(function=function.__name__,
-                           parameters=test_parameters_str,
+                           parameters=parameters_str,
                            result=RESULT_NAME,
-                           arguments=function_arguments_str,
+                           arguments=arguments_str,
                            return_type=return_type)
 
 
