@@ -3,8 +3,6 @@ import os
 from setuptools import (setup,
                         find_packages)
 
-import scripts
-
 project_base_url = 'https://github.com/lycantropos/liable/'
 
 setup_requires = [
@@ -27,8 +25,8 @@ tests_require = [
 setup(name='liable',
       packages=find_packages(exclude=('tests',)),
       scripts=[os.path.join('scripts', 'liable')],
-      version=scripts.__version__,
-      description=scripts.__doc__,
+      version='0.0.1-alpha',
+      description='Auto-tests generator.',
       long_description=open('README.rst').read(),
       author='Azat Ibrakov',
       author_email='azatibrakov@gmail.com',
