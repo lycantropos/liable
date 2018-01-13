@@ -11,7 +11,6 @@ from typing import (Any,
                     Tuple)
 
 from liable.types import NamespaceType
-
 from . import (catalog,
                modules,
                arboretum)

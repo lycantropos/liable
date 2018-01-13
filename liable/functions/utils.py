@@ -16,8 +16,6 @@ from liable import (annotator,
                     strings)
 from liable.annotator.detectors import is_generic
 from liable.types import NamespaceType
-from liable.utils import merge_mappings
-
 from .detectors import (supports_to_string,
                         is_literal)
 

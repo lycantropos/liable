@@ -1,3 +1,4 @@
+import builtins
 import enum
 import inspect
 import operator
@@ -11,8 +12,6 @@ from typing import (Optional,
                     Dict,
                     Set,
                     List)
-
-import builtins
 
 from . import strings
 

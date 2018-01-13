@@ -5,6 +5,7 @@ from datetime import (time,
                       timedelta,
                       date,
                       datetime)
+from decimal import Decimal
 from fractions import Fraction
 from functools import partial
 from itertools import (chain,
@@ -14,7 +15,6 @@ from typing import (Iterable,
                     Dict,
                     List)
 
-from decimal import Decimal
 from hypothesis import strategies
 
 from . import (functions,

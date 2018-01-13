@@ -13,8 +13,7 @@ from . import (annotator,
                strings,
                file_system)
 from .types import NamespaceType
-from .utils import (fix_code,
-                    merge_mappings)
+from .utils import fix_code
 
 PARAMETER_TEMPLATE = '{parameter}: {annotation}'
 DEFINITION_TEMPLATE = 'def test_{function}({parameters}) -> None:\n'

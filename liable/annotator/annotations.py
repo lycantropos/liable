@@ -11,7 +11,6 @@ from typing import (TypingMeta,
 from liable import (namespaces,
                     strings)
 from liable.types import NamespaceType
-
 from .base import Annotation
 
 ELLIPSIS_STRING = '...'
