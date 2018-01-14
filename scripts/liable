@@ -101,7 +101,7 @@ utilities = {catalog.ObjectPath(module=collections.__name__,
                 nargs=-1)
 def generate_utilities(target_directory: Optional[str],
                        modules_paths: List[str]) -> None:
-    """Generates strategies & fixtures skeletons from modules functions."""
+    """Generates strategies & fixtures skeletons."""
     if target_directory is None:
         err_msg = 'No target directory specified.'
         raise click.BadParameter(err_msg)
@@ -163,7 +163,7 @@ def generate_utilities(target_directory: Optional[str],
 def generate_tests(target_directory: Optional[str],
                    spaces_count: int,
                    modules_paths: List[str]) -> None:
-    """Generates test cases skeletons for modules."""
+    """Generates test cases skeletons."""
     if target_directory is None:
         err_msg = 'No target directory specified.'
         raise click.BadParameter(err_msg)
