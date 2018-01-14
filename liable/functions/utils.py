@@ -14,8 +14,8 @@ from liable import (annotator,
                     namespaces,
                     catalog,
                     strings)
-from liable.annotator.detectors import is_generic
 from liable.types import NamespaceType
+
 from .detectors import (supports_to_string,
                         is_literal)
 
@@ -105,10 +105,7 @@ def dependencies(function: FunctionType,
                                 namespace=namespace)
     yield from chain.from_iterable(map(annotation_walker, annotations))
     return_type = function_signature.return_type
-    if is_generic(return_type.origin):
-        yield from return_type.bases
-        return
-    yield from annotation_walker(return_type)
+    yield from return_type.bases
 
 
 def signature(function: FunctionType) -> Signature:
