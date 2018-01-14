@@ -75,8 +75,9 @@ def to_annotation(object_: Any) -> Annotation:
 def walk(annotation: Annotation,
          *,
          namespace: NamespaceType) -> Iterator[Any]:
-    if annotation.origin in namespace.values():
-        yield annotation.origin
+    origin = annotation.origin
+    if origin in namespace.values():
+        yield origin
         return
     yield from walk_plain(annotation)
 
