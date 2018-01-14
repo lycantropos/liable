@@ -1,4 +1,5 @@
 import inspect
+import operator
 import os
 from functools import partial
 from itertools import (chain,
@@ -10,6 +11,7 @@ from typing import (Iterable,
 from . import (annotator,
                functions,
                catalog,
+               namespaces,
                strings,
                file_system)
 from .types import NamespaceType
@@ -45,15 +47,12 @@ def from_function(function: FunctionType,
                   *,
                   namespace: NamespaceType,
                   spaces_count: int) -> str:
-    def to_name(annotation: Type) -> str:
-        annotation = annotator.normalize(annotation)
-        return annotation.to_string(namespace)
-
-    signature = inspect.signature(function)
-    parameters = signature.parameters.values()
+    signature = functions.signature(function)
+    parameters = signature.parameters
     parameters_str = strings.join(
-        PARAMETER_TEMPLATE.format(parameter=parameter.name,
-                                  annotation=to_name(parameter.annotation))
+        PARAMETER_TEMPLATE.format(
+            parameter=parameter.name,
+            annotation=parameter.annotation.to_string(namespace))
         for parameter in parameters)
     try:
         parameter, = parameters
@@ -70,8 +69,8 @@ def from_function(function: FunctionType,
         arguments_str = (functions.ARGUMENTS_TEMPLATES[kind]
                          .format(parameter=parameter.name,
                                  argument=parameter.name))
-    return_annotation = signature.return_annotation
-    return_annotation_bases = annotator.to_bases(return_annotation)
+    return_type = signature.return_type
+    return_type_bases = return_type.bases
 
     def to_statement(annotation_base: Type) -> str:
         if annotation_base is None:
@@ -79,24 +78,25 @@ def from_function(function: FunctionType,
         else:
             return RETURN_TYPE_CHECK_TEMPLATE
 
-    statements = sorted(set(map(to_statement, return_annotation_bases)))
+    statements = sorted(set(map(to_statement, return_type_bases)))
     statement = strings.join_with_wrapping(statements,
                                            sep='\nor\n')
     assertion_template = ASSERTION_TEMPLATE.format(statement=statement)
 
-    return_type = None
-    defined_return_annotation_bases = list(filter(None,
-                                                  return_annotation_bases))
-    if defined_return_annotation_bases:
-        if len(defined_return_annotation_bases) == 1:
-            return_annotation_base, = defined_return_annotation_bases
-            return_type = to_name(return_annotation_base)
+    return_type_str = None
+    defined_return_types_bases = list(filter(None, return_type_bases))
+    name_seeker = partial(namespaces.search_name,
+                          namespace=namespace)
+    if defined_return_types_bases:
+        if len(defined_return_types_bases) == 1:
+            return_type_base, = defined_return_types_bases
+            return_type_str = name_seeker(return_type_base)
         else:
-            return_types = list(map(to_name,
-                                    defined_return_annotation_bases))
+            return_types = list(map(name_seeker,
+                                    defined_return_types_bases))
             return_types_str = ', '.join(return_types)
-            return_type = ('({return_types})'
-                           .format(return_types=return_types_str))
+            return_type_str = ('({return_types})'
+                               .format(return_types=return_types_str))
 
     tab = ' ' * spaces_count
     template = (DEFINITION_TEMPLATE
@@ -106,7 +106,7 @@ def from_function(function: FunctionType,
                            parameters=parameters_str,
                            result=RESULT_NAME,
                            arguments=arguments_str,
-                           return_type=return_type)
+                           return_type=return_type_str)
 
 
 def normalize_path(module_path: str,

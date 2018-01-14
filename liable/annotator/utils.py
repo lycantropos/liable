@@ -116,9 +116,3 @@ def none_type_to_none(object_: Any) -> Any:
     if object_ is NoneType:
         return None
     return object_
-
-
-def to_bases(type_: Type) -> Tuple[Type, ...]:
-    if not isinstance(type_, Annotation):
-        type_ = normalize(type_)
-    return type_.bases
