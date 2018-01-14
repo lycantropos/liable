@@ -5,11 +5,11 @@ from typing import (TypingMeta,
                     Any,
                     Union,
                     Type,
-                    Iterator,
-                    Tuple)
+                    Iterator)
 
 from liable.types import NamespaceType
 from liable.utils import to_name
+
 from . import annotations
 from .base import Annotation
 from .detectors import (is_typing,
