@@ -111,14 +111,6 @@ def dependencies(function: FunctionType,
     yield from annotation_walker(return_type)
 
 
-def normalize_annotation(parameter: inspect.Parameter) -> inspect.Parameter:
-    annotation = annotator.normalize(parameter.annotation)
-    return inspect.Parameter(parameter.name,
-                             parameter.kind,
-                             default=parameter.default,
-                             annotation=annotation)
-
-
 def signature(function: FunctionType) -> Signature:
     raw_signature = inspect.signature(function)
     parameters = raw_signature.parameters.values()
@@ -126,3 +118,8 @@ def signature(function: FunctionType) -> Signature:
     return_type = annotator.normalize(raw_signature.return_annotation)
     return Signature(parameters=parameters,
                      return_type=return_type)
+
+
+def normalize_annotation(parameter: inspect.Parameter) -> inspect.Parameter:
+    annotation = annotator.normalize(parameter.annotation)
+    return parameter.replace(annotation=annotation)
