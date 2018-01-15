@@ -1,14 +1,17 @@
 import inspect
 import operator
 from collections import defaultdict
-from itertools import chain
+from itertools import (chain,
+                       starmap,
+                       repeat,
+                       product)
 from types import FunctionType
 from typing import (Any,
+                    Optional,
+                    Type,
                     Iterable,
                     Iterator,
-                    Type,
                     Dict,
-                    Set,
                     List)
 
 from . import (annotator,
@@ -66,26 +69,87 @@ def from_functions(module_functions: Iterable[FunctionType]
         except KeyError:
             result[name] = parameter
             continue
-        mro = bases_mro(annotation)
         previous_annotation = previous_parameter.annotation
-        previous_mro = bases_mro(previous_annotation)
-        if (mro & previous_mro == {object} and
-                not (previous_annotation.origin is annotation.origin is Any)):
+        if not are_annotations_consistent(annotation, previous_annotation):
             err_msg = ('Invalid parameter: "{parameter}", '
-                       'annotations should agree, '
+                       'different annotations should agree, '
                        'but found "{previous_annotation}", "{annotation}".'
-                       .format(parameter=parameter.name,
+                       .format(parameter=name,
                                previous_annotation=previous_annotation.origin,
                                annotation=annotation.origin))
             raise ValueError(err_msg)
-        if previous_mro - mro:
+        if is_annotation_more_general(annotation, previous_annotation):
             result[name] = parameter
     yield from result.values()
 
 
-def bases_mro(annotation: annotator.Annotation) -> Set[Type]:
-    return set(chain.from_iterable(map(operator.attrgetter('__mro__'),
-                                       annotation.bases)))
+def is_annotation_more_general(annotation: annotator.Annotation,
+                               other_annotation: annotator.Annotation
+                               ) -> bool:
+    sub_types = set(bases_mro(annotation))
+    sub_types -= {object}
+    other_sub_types = set(bases_mro(other_annotation))
+    other_sub_types -= {object}
+    for type_ in sub_types:
+        sibling = next(find_siblings(type_,
+                                     other_types=other_sub_types))
+        other_annotation_is_more_general = not issubclass(sibling, type_)
+        if other_annotation_is_more_general:
+            return False
+    return True
+
+
+def are_annotations_consistent(annotation: annotator.Annotation,
+                               previous_annotation: annotator.Annotation
+                               ) -> bool:
+    sub_types = set(bases_mro(annotation))
+    sub_types -= {object}
+    other_sub_types = set(bases_mro(previous_annotation))
+    other_sub_types -= {object}
+    return (are_type_systems_related(sub_types, other_sub_types) or
+            are_type_systems_related(other_sub_types, sub_types))
+
+
+def are_type_systems_related(types: Iterable[Type],
+                             other_types: Iterable[Type]) -> bool:
+    other_types = list(other_types)
+    return all(has_sibling(type_,
+                           other_types=other_types)
+               for type_ in types)
+
+
+def has_sibling(type_: Type,
+                *,
+                other_types: Iterable[Type]) -> bool:
+    siblings = find_siblings(type_,
+                             other_types=other_types)
+    sibling = next(siblings, None)
+    return sibling is not None
+
+
+def find_siblings(type_: Type,
+                  *,
+                  other_types: Iterable[Type]) -> Iterator[Type]:
+    other_types = list(other_types)
+    types_pairs = product(repeat(type_,
+                                 times=len(other_types)),
+                          other_types)
+    sup_classes = starmap(to_sup_class, types_pairs)
+    yield from filter(None, sup_classes)
+
+
+def to_sup_class(type_: Type, other_type: Type) -> Optional[Type]:
+    if issubclass(type_, other_type):
+        return other_type
+    elif issubclass(other_type, type_):
+        return type_
+    else:
+        return None
+
+
+def bases_mro(annotation: annotator.Annotation) -> Iterator[Type]:
+    yield from chain.from_iterable(map(operator.attrgetter('__mro__'),
+                                       annotation.bases))
 
 
 VARIADIC_PARAMETERS_KINDS = {inspect._VAR_POSITIONAL,
