@@ -78,14 +78,14 @@ def from_functions(module_functions: Iterable[FunctionType]
                                previous_annotation=previous_annotation.origin,
                                annotation=annotation.origin))
             raise ValueError(err_msg)
-        if is_annotation_more_general(annotation, previous_annotation):
+        if is_annotation_more_specific(annotation, previous_annotation):
             result[name] = parameter
     yield from result.values()
 
 
-def is_annotation_more_general(annotation: annotator.Annotation,
-                               other_annotation: annotator.Annotation
-                               ) -> bool:
+def is_annotation_more_specific(annotation: annotator.Annotation,
+                                other_annotation: annotator.Annotation
+                                ) -> bool:
     sub_types = set(bases_mro(annotation))
     sub_types -= {object}
     other_sub_types = set(bases_mro(other_annotation))
@@ -93,8 +93,8 @@ def is_annotation_more_general(annotation: annotator.Annotation,
     for type_ in sub_types:
         sibling = next(find_siblings(type_,
                                      other_types=other_sub_types))
-        other_annotation_is_more_general = not issubclass(sibling, type_)
-        if other_annotation_is_more_general:
+        other_annotation_is_more_specific = issubclass(sibling, type_)
+        if other_annotation_is_more_specific:
             return False
     return True
 
