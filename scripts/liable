@@ -9,6 +9,8 @@ from typing import (Any,
                     Optional,
                     Iterable,
                     Iterator,
+                    Dict,
+                    Tuple,
                     List)
 
 import click
@@ -88,7 +90,14 @@ utilities = {
                         type=catalog.PathType.relative): Any,
     catalog.ContentPath(module=catalog.ModulePath(Optional.__module__),
                         object='Optional',
-                        type=catalog.PathType.relative): Optional}
+                        type=catalog.PathType.relative): Optional,
+    catalog.ContentPath(module=catalog.ModulePath(Tuple.__module__),
+                        object='Tuple',
+                        type=catalog.PathType.relative): Tuple,
+    catalog.ContentPath(module=catalog.ModulePath(Dict.__module__),
+                        object='Dict',
+                        type=catalog.PathType.relative): Dict,
+}
 
 
 @main.command(name='utilities')

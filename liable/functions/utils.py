@@ -8,6 +8,8 @@ from typing import (Any,
                     Iterable,
                     Iterator,
                     NamedTuple,
+                    Dict,
+                    Tuple,
                     List)
 
 from liable import (annotator,
@@ -129,5 +131,14 @@ def signature(function: FunctionType) -> Signature:
 
 
 def normalize_annotation(parameter: inspect.Parameter) -> inspect.Parameter:
+    parameter = normalize_parameter(parameter)
     annotation = annotator.normalize(parameter.annotation)
     return parameter.replace(annotation=annotation)
+
+
+def normalize_parameter(parameter: inspect.Parameter) -> inspect.Parameter:
+    if parameter.kind == inspect._VAR_POSITIONAL:
+        return parameter.replace(annotation=Tuple[parameter.annotation])
+    elif parameter.kind == inspect._VAR_KEYWORD:
+        return parameter.replace(annotation=Dict[str, parameter.annotation])
+    return parameter
