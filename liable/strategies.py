@@ -27,7 +27,8 @@ from . import (functions,
 from .annotator.detectors import is_generic
 from .types import NamespaceType
 from .utils import (fix_code,
-                    merge_mappings)
+                    merge_mappings,
+                    to_name)
 
 
 def init_module(modules_parameters: Dict[catalog.ModulePath,
@@ -196,6 +197,6 @@ def to_strategy_name(parameter: inspect.Parameter) -> str:
         pass
     else:
         if is_generic(annotation.origin):
-            parameter_full_name += '_' + annotation_base.__name__.lower()
+            parameter_full_name += '_' + to_name(annotation_base).lower()
     return strings.to_plurals(parameter_full_name,
                               target_case=strings.Case.snake)
