@@ -14,6 +14,7 @@ from liable import (annotator,
                     namespaces,
                     catalog,
                     strings)
+from liable.catalog import ObjectPathType
 from liable.types import NamespaceType
 
 from .detectors import (supports_to_string,
@@ -25,9 +26,6 @@ ARGUMENTS_TEMPLATES = {
     inspect._VAR_POSITIONAL: '*{argument}',
     inspect._KEYWORD_ONLY: '{parameter}={argument}',
     inspect._VAR_KEYWORD: '**{argument}'}
-
-VARIADIC_PARAMETERS_KINDS = {inspect._VAR_POSITIONAL,
-                             inspect._VAR_KEYWORD}
 
 
 class Signature(NamedTuple):
@@ -79,10 +77,23 @@ class FunctionCall:
                         arguments=arguments_str))
 
 
+def walk(function_call: FunctionCall) -> Iterator[Any]:
+    yield function_call.function
+
+    def is_function_call(object_: Any) -> bool:
+        return isinstance(object_, FunctionCall)
+
+    sub_calls = filter(is_function_call, function_call.arguments)
+    yield from chain.from_iterable(map(walk, sub_calls))
+
+    plain_arguments = filterfalse(is_function_call, function_call.arguments)
+    yield from plain_arguments
+
+
 def dependants_paths(functions: Iterable[FunctionType],
                      *,
                      namespace: NamespaceType
-                     ) -> Iterator[catalog.ObjectPath]:
+                     ) -> Iterator[ObjectPathType]:
     dependencies_detector = partial(dependencies,
                                     namespace=namespace)
     signatures_dependants = chain.from_iterable(map(dependencies_detector,

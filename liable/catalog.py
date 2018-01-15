@@ -5,78 +5,111 @@ import operator
 import os
 from collections import defaultdict
 from itertools import filterfalse
-from typing import (Optional,
+from typing import (Union,
+                    Optional,
                     Iterable,
                     Iterator,
                     NamedTuple,
                     Dict,
-                    Set,
-                    List)
+                    Set)
 
 from . import strings
 
 SEPARATOR = '.'
 
 
-class PathType(enum.IntEnum):
-    inner = 0
-    absolute = 1
-    relative = 2
+class PathType(enum.Enum):
+    inner = 'inner'
+    absolute = 'absolute'
+    relative = 'relative'
 
 
 IMPORTS_TEMPLATES = {PathType.absolute: 'import {module}\n',
                      PathType.relative: 'from {module} import {objects}\n'}
 
-BUILT_IN_MODULE_NAME = builtins.__name__
+
+class ModulePath(NamedTuple):
+    module: Union[str, 'ModulePath']
+    object: Optional[str] = None
+    type: PathType = PathType.absolute
+
+    def __str__(self):
+        module_full_name = str(self.module)
+        if self.object is None:
+            return module_full_name
+        else:
+            return module_full_name + SEPARATOR + self.object
 
 
-class ObjectPath(NamedTuple):
-    module: Optional[str]
+class ContentPath(NamedTuple):
+    module: ModulePath
     object: Optional[str]
     type: PathType
 
     def __str__(self):
+        module_full_name = str(self.module)
         if self.object is None:
-            return self.module
+            return module_full_name
         elif is_built_in(self):
             return self.object
         else:
-            return self.module + SEPARATOR + self.object
+            return module_full_name + SEPARATOR + self.object
 
 
-def is_absolute(object_path: ObjectPath) -> bool:
+BUILT_INS_MODULE_PATH = ModulePath(builtins.__name__)
+
+ObjectPathType = Union[ModulePath, ContentPath]
+
+
+def is_absolute(object_path: ObjectPathType) -> bool:
     return object_path.type == PathType.absolute
 
 
-def is_built_in(object_path: ObjectPath) -> bool:
-    return object_path.module == BUILT_IN_MODULE_NAME
+def is_built_in(object_path: ObjectPathType) -> bool:
+    return object_path.module == BUILT_INS_MODULE_PATH
 
 
-def to_module_full_name(path: str) -> str:
-    path_parts = path.split(os.sep)
-    path_parts = normalize_path_parts(path_parts)
-    return SEPARATOR.join(path_parts)
+def path_to_module_path(path: str) -> ModulePath:
+    package_name, file_name = os.path.split(path)
+    module_name = to_module_name(file_name)
+    if not package_name:
+        return ModulePath(module_name)
+    if module_name is None:
+        return path_to_module_path(package_name)
+    return ModulePath(module=path_to_module_path(package_name),
+                      object=module_name,
+                      type=PathType.absolute)
 
 
-def normalize_path_parts(parts: List[str]) -> List[str]:
-    module_file_name = parts[-1]
-    module_name = inspect.getmodulename(module_file_name)
-    if module_name:
-        if module_name == '__init__':
-            return parts[:-1]
-        else:
-            return [*parts[:-1], module_name]
-    return parts
-
-
-def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
-    modules_names = set(map(operator.attrgetter('module'), module_paths))
+def name_to_module_path(full_name: str) -> ModulePath:
     try:
-        module_name, = modules_names
+        package_name, full_name = full_name.split(SEPARATOR, 1)
+    except ValueError:
+        return ModulePath(full_name)
+    else:
+        return ModulePath(module=name_to_module_path(package_name),
+                          object=full_name,
+                          type=PathType.absolute)
+
+
+def to_module_name(file_name: str) -> Optional[str]:
+    module_name = inspect.getmodulename(file_name)
+    if module_name is None:
+        return file_name
+    if module_name == '__init__':
+        return None
+    return module_name
+
+
+def to_imports(*module_objects_paths: ObjectPathType) -> Iterator[str]:
+    modules_paths = set(map(operator.attrgetter('module'),
+                            module_objects_paths))
+    try:
+        module_path, = modules_paths
     except ValueError as err:
-        if modules_names:
+        if modules_paths:
             modules_names_str = strings.join('"' + name + '"'
-                                             for name in modules_names)
+                                             for name in modules_paths)
             err_msg = ('Found modules paths for different modules: '
                        '{modules}.'
                        .format(modules=modules_names_str))
@@ -84,26 +117,36 @@ def to_imports(*module_paths: ObjectPath) -> Iterator[str]:
             err_msg = 'No modules paths found.'
         raise ValueError(err_msg) from err
 
-    if is_built_in(module_paths[0]):
+    if is_built_in(module_objects_paths[0]):
         return
 
-    non_absolute_paths = list(filterfalse(is_absolute, module_paths))
+    non_absolute_paths = list(filterfalse(is_absolute, module_objects_paths))
     if non_absolute_paths:
-        objects_names = list(map(operator.attrgetter('object'),
-                                 non_absolute_paths))
+        objects_names = sorted(map(operator.attrgetter('object'),
+                                   non_absolute_paths))
         objects_names_str = strings.join_with_wrapping(objects_names)
         yield (IMPORTS_TEMPLATES[PathType.relative]
-               .format(module=module_name,
+               .format(module=module_path,
                        objects=objects_names_str))
-    absolute_path = next(filter(is_absolute, module_paths), None)
+    absolute_path = next(filter(is_absolute, module_objects_paths), None)
     if absolute_path is not None:
         yield (IMPORTS_TEMPLATES[PathType.absolute]
-               .format(module=module_name))
+               .format(module=module_path))
 
 
-def modules_objects_paths(objects_paths: Iterable[ObjectPath]
-                          ) -> Dict[str, Set[ObjectPath]]:
+def modules_objects_paths(objects_paths: Iterable[ObjectPathType]
+                          ) -> Dict[str, Set[ObjectPathType]]:
     result = defaultdict(list)
     for object_path in objects_paths:
-        result[object_path.module].append(object_path)
+        module_path = to_module_path(object_path)
+        if module_path.type == PathType.relative:
+            result[module_path.module].append(module_path)
+        else:
+            result[module_path].append(object_path)
     return dict(zip(result.keys(), map(set, result.values())))
+
+
+def to_module_path(object_path: ObjectPathType) -> ModulePath:
+    if isinstance(object_path, ModulePath):
+        return object_path
+    return object_path.module

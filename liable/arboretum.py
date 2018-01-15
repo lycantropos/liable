@@ -1,23 +1,22 @@
 import ast
+import importlib.util
 import inspect
 import operator
 import os
-import pkgutil
 from functools import partial
-from itertools import (chain,
-                       repeat,
-                       starmap)
+from itertools import (repeat,
+                       starmap,
+                       filterfalse)
 from types import ModuleType
 from typing import (Union,
                     Callable,
-                    Iterable,
                     Iterator,
                     Tuple)
 
 from . import (catalog,
                modules,
-               file_system,
-               strings)
+               file_system)
+from .catalog import ObjectPathType
 
 ImportType = Union[ast.Import, ast.ImportFrom]
 
@@ -56,13 +55,11 @@ def to_source(module: ModuleType,
 
 def to_object_path(statement: ImportType,
                    *,
-                   sep: str = catalog.SEPARATOR,
                    all_objects_wildcard: str = ALL_OBJECTS_WILDCARD
-                   ) -> Iterator[catalog.ObjectPath]:
+                   ) -> Iterator[ObjectPathType]:
     name = operator.attrgetter('name')
     names = list(map(name, statement.names))
     objects_are_relative = isinstance(statement, ast.ImportFrom)
-
     if objects_are_relative:
         if is_import_relative(statement):
             err_msg = ('Import statement should be absolute, '
@@ -71,10 +68,21 @@ def to_object_path(statement: ImportType,
 
         objects_names = names[:]
 
-        module_name = statement.module
+        module_full_name = statement.module
+
+        def is_module(object_name: str) -> bool:
+            try:
+                importlib.import_module(name=catalog.SEPARATOR + object_name,
+                                        package=module_full_name)
+            except ImportError:
+                return False
+            else:
+                return True
+
+        module_path = catalog.name_to_module_path(module_full_name)
 
         if all_objects_wildcard in objects_names:
-            module = modules.from_name(module_name)
+            module = modules.from_module_path(module_path)
             objects_names.remove(all_objects_wildcard)
             try:
                 imported_objects_names = module.__all__
@@ -82,26 +90,22 @@ def to_object_path(statement: ImportType,
                 imported_objects_names = vars(module).keys()
             objects_names.extend(imported_objects_names)
 
-        modules_names = repeat(module_name)
+        modules_paths = repeat(module_path)
+
+        sub_modules_names = filter(is_module, objects_names)
+        module_path_factory = partial(catalog.ModulePath,
+                                      type=catalog.PathType.relative)
+        yield from starmap(module_path_factory,
+                           zip(modules_paths, sub_modules_names))
+
+        contents_names = filterfalse(is_module, objects_names)
+        content_path_factory = partial(catalog.ContentPath,
+                                       type=catalog.PathType.relative)
+        yield from starmap(content_path_factory,
+                           zip(modules_paths, contents_names))
     else:
         # all names are modules names
-        objects_names = repeat(None)
-
-        def sup_modules(module_name: str) -> Iterable[str]:
-            *result, _ = module_name.split(sep)
-            yield from strings.iterative_join(*result,
-                                              sep=sep)
-
-        sup_modules = chain.from_iterable(map(sup_modules,
-                                              names))
-        modules_names = chain(names, sup_modules)
-
-    path_type = (catalog.PathType.relative
-                 if objects_are_relative
-                 else catalog.PathType.absolute)
-    object_path_factory = partial(catalog.ObjectPath,
-                                  type=path_type)
-    yield from starmap(object_path_factory, zip(modules_names, objects_names))
+        yield from map(catalog.name_to_module_path, names)
 
 
 def import_absolutizer(module_path: str
@@ -125,23 +129,12 @@ def import_absolutizer(module_path: str
         result = statement.module
         if is_import_relative(statement):
             jumps = (os.pardir + os.sep) * (statement.level - 1)
-            module_path = os.path.join(directory_relative_path,
-                                       jumps,
-                                       result or '')
-            module_path = os.path.normpath(module_path)
-            result = catalog.to_module_full_name(module_path)
+            path = os.path.join(directory_relative_path, jumps, result or '')
+            path = os.path.normpath(path)
+            result = str(catalog.path_to_module_path(path))
         return result
 
     return to_absolute
-
-
-def is_module_name(name: str) -> bool:
-    try:
-        loader = pkgutil.get_loader(name)
-    except ImportError:
-        return False
-    else:
-        return loader is not None
 
 
 def is_import_statement(node: ast.AST) -> bool:

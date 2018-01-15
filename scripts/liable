@@ -81,15 +81,14 @@ def search_modules(recursive: bool,
         click.echo(module_path)
 
 
-utilities = {catalog.ObjectPath(module=collections.__name__,
-                                object=None,
-                                type=catalog.PathType.absolute): collections,
-             catalog.ObjectPath(module=Any.__module__,
-                                object='Any',
-                                type=catalog.PathType.relative): Any,
-             catalog.ObjectPath(module=Optional.__module__,
-                                object='Optional',
-                                type=catalog.PathType.relative): Optional}
+utilities = {
+    catalog.ModulePath(collections.__name__): collections,
+    catalog.ContentPath(module=catalog.ModulePath(Any.__module__),
+                        object='Any',
+                        type=catalog.PathType.relative): Any,
+    catalog.ContentPath(module=catalog.ModulePath(Optional.__module__),
+                        object='Optional',
+                        type=catalog.PathType.relative): Optional}
 
 
 @main.command(name='utilities')
@@ -138,11 +137,13 @@ def generate_utilities(target_directory: Optional[str],
     with open(init_module_path, mode='a') as init_module_file:
         init_module_file.write(strategies.init_module(modules_parameters))
 
-    for module_full_name, module_parameters in modules_parameters.items():
+    for module_path, module_parameters in modules_parameters.items():
+        module_full_name = str(module_path)
         write_source(strategies.from_parameters(module_parameters,
                                                 namespace=modules_namespace),
                      top_directory=strategies_directory,
                      module_full_name=module_full_name)
+
         write_source(fixtures.from_parameters(module_parameters,
                                               namespace=modules_namespace),
                      top_directory=fixtures_directory,
@@ -196,9 +197,10 @@ def generate_tests(target_directory: Optional[str],
             raise click.BadParameter(err) from err
         else:
             path = test_cases.normalize_path(path)
+            module_full_name = str(catalog.path_to_module_path(path))
             write_source(source,
                          top_directory=target_directory,
-                         module_full_name=catalog.to_module_full_name(path))
+                         module_full_name=module_full_name)
 
 
 def modules_paths_to_namespaces(modules_paths: Iterable[str]

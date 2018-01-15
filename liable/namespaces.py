@@ -1,6 +1,5 @@
 import builtins
 import inspect
-import operator
 from functools import partial
 from itertools import chain
 from types import (FunctionType,
@@ -10,13 +9,13 @@ from typing import (Any,
                     Iterator,
                     Tuple)
 
-from liable.types import NamespaceType
 from . import (catalog,
                modules,
                arboretum)
+from .catalog import ObjectPathType
+from .types import NamespaceType
 from .utils import (to_name,
                     merge_mappings)
-from .validators import validate_modules
 
 
 def from_module(module: ModuleType) -> NamespaceType:
@@ -25,12 +24,14 @@ def from_module(module: ModuleType) -> NamespaceType:
 
 
 def built_ins(module: ModuleType = builtins) -> NamespaceType:
-    module_map = dict(vars(module))
-    module_map['...'] = module_map.pop('Ellipsis')
-    return {catalog.ObjectPath(module=catalog.BUILT_IN_MODULE_NAME,
-                               object=name,
-                               type=catalog.PathType.inner): content
-            for name, content in module_map.items()}
+    raw_namespace = dict(vars(module))
+    raw_namespace['...'] = raw_namespace.pop('Ellipsis')
+    assert not any(inspect.ismodule(content)
+                   for content in raw_namespace.values())
+    return {catalog.ContentPath(module=catalog.BUILT_INS_MODULE_PATH,
+                                object=name,
+                                type=catalog.PathType.inner): content
+            for name, content in raw_namespace.items()}
 
 
 def dependent_objects(module: ModuleType) -> NamespaceType:
@@ -40,8 +41,7 @@ def dependent_objects(module: ModuleType) -> NamespaceType:
     return dict(load_dependent_objects(objects_paths))
 
 
-def dependent_objects_paths(module: ModuleType
-                            ) -> Iterator[catalog.ObjectPath]:
+def dependent_objects_paths(module: ModuleType) -> Iterator[ObjectPathType]:
     tree = arboretum.from_module(module)
     imports = filter(arboretum.is_import_statement, tree.body)
     module_path = module.__file__
@@ -50,17 +50,13 @@ def dependent_objects_paths(module: ModuleType
     yield from chain.from_iterable(map(arboretum.to_object_path, imports))
 
 
-def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
-                           ) -> Iterator[Tuple[catalog.ObjectPath, Any]]:
+def load_dependent_objects(objects_paths: Iterable[ObjectPathType]
+                           ) -> Iterator[Tuple[ObjectPathType, Any]]:
     objects_paths = list(objects_paths)
-    modules_paths = filter(modules.full_name_valid, map(str, objects_paths))
-    dependencies_names = chain(map(operator.attrgetter('module'),
-                                   objects_paths),
-                               modules_paths)
-    dependencies_names = set(dependencies_names)
-    validate_modules(dependencies_names)
-    dependencies = dict(zip(dependencies_names,
-                            map(modules.from_name, dependencies_names)))
+    dependencies_paths = map(catalog.to_module_path, objects_paths)
+    dependencies_paths = set(dependencies_paths)
+    dependencies = dict(zip(dependencies_paths,
+                            map(modules.from_module_path, dependencies_paths)))
     objects_seeker = partial(modules.search,
                              modules=dependencies)
     yield from zip(objects_paths,
@@ -68,10 +64,11 @@ def load_dependent_objects(objects_paths: Iterable[catalog.ObjectPath]
 
 
 def inner_objects(module: ModuleType) -> NamespaceType:
-    module_name = module.__name__
-    return {catalog.ObjectPath(module=module_name,
-                               object=object_name,
-                               type=catalog.PathType.inner): content
+    module_full_name = module.__name__
+    module_path = catalog.name_to_module_path(module_full_name)
+    return {catalog.ContentPath(module=module_path,
+                                object=object_name,
+                                type=catalog.PathType.inner): content
             for object_name, content in vars(module).items()
             if modules.is_object_from_module(content,
                                              module=module)}
@@ -84,22 +81,15 @@ def search_name(object_: Any,
                        namespace=namespace)
     if path.type != catalog.PathType.absolute:
         return path.object
-    *sup_packages, module_name = path.module.split(catalog.SEPARATOR)
-    if not sup_packages:
-        return str(path)
-    module_package = catalog.SEPARATOR.join(sup_packages)
-    module_path = next(object_path
-                       for object_path in namespace
-                       if object_path.module == module_package
-                       and object_path.object == module_name)
+    module_path = path.module
     if module_path.type == catalog.PathType.relative:
-        return module_name + catalog.SEPARATOR + path.object
+        return module_path.object + catalog.SEPARATOR + path.object
     return str(path)
 
 
 def search_path(object_: Any,
                 *,
-                namespace: NamespaceType) -> catalog.ObjectPath:
+                namespace: NamespaceType) -> ObjectPathType:
     is_relative = is_object_relative(object_,
                                      namespace=namespace)
     if is_relative:
@@ -109,7 +99,7 @@ def search_path(object_: Any,
         object_paths = chain.from_iterable(
                 search_absolute_objects(object_,
                                         namespace=from_module(module),
-                                        module_name=str(module_path))
+                                        module_path=module_path)
                 for module_path, module in namespace_modules(namespace))
     try:
         return next(object_paths)
@@ -135,7 +125,7 @@ def is_object_relative(object_: Any,
 
 def search_relative_objects(object_: Any,
                             *,
-                            namespace: NamespaceType) -> catalog.ObjectPath:
+                            namespace: NamespaceType) -> ObjectPathType:
     for path, content in namespace.items():
         if content is object_:
             yield path
@@ -144,18 +134,28 @@ def search_relative_objects(object_: Any,
 def search_absolute_objects(object_: Any,
                             *,
                             namespace: NamespaceType,
-                            module_name: str) -> catalog.ObjectPath:
+                            module_path: catalog.ModulePath
+                            ) -> ObjectPathType:
     for path, content in namespace.items():
         if content is object_:
-            yield catalog.ObjectPath(module=module_name,
-                                     object=path.object,
-                                     type=catalog.PathType.absolute)
+            if inspect.ismodule(content):
+                yield catalog.ModulePath(module=module_path,
+                                         object=path.object,
+                                         type=catalog.PathType.absolute)
+            else:
+                yield catalog.ContentPath(module=module_path,
+                                          object=path.object,
+                                          type=catalog.PathType.absolute)
 
 
 def namespace_modules(namespace: NamespaceType
-                      ) -> Iterator[Tuple[catalog.ObjectPath, ModuleType]]:
+                      ) -> Iterator[Tuple[catalog.ModulePath, ModuleType]]:
     for path, content in namespace.items():
         if inspect.ismodule(content):
+            err_msg = ('Module\'s path in namespace '
+                       'should be instance of "{type}".'
+                       .format(type=catalog.ModulePath.__qualname__))
+            assert isinstance(path, catalog.ModulePath), err_msg
             yield path, content
 
 

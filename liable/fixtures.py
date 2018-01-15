@@ -29,10 +29,8 @@ def from_parameters(parameters: Iterable[inspect.Parameter],
                                  namespace=namespace)
     annotations_paths = map(object_path_seeker, annotations)
     additional_objects_paths = [
-        catalog.ObjectPath(module=pytest.__name__,
-                           object=None,
-                           type=catalog.PathType.absolute),
-        catalog.ObjectPath(module='tests',
+        catalog.ModulePath(pytest.__name__),
+        catalog.ModulePath(module=catalog.ModulePath('tests'),
                            object='strategies',
                            type=catalog.PathType.relative)
     ]

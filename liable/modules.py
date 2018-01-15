@@ -1,23 +1,22 @@
 import importlib.util
 import inspect
-import operator
-from functools import partial
 from types import ModuleType
 from typing import (Any,
                     Dict)
 
 from . import (catalog,
-               file_system,
-               strings)
+               file_system)
+from .catalog import ObjectPathType
 
 
-def from_name(full_name: str) -> ModuleType:
+def from_module_path(module_path: catalog.ModulePath) -> ModuleType:
+    full_name = str(module_path)
     return importlib.import_module(full_name)
 
 
 def from_path(path: str) -> ModuleType:
-    full_name = catalog.to_module_full_name(file_system.to_relative(path))
-    return from_name(full_name)
+    object_path = catalog.path_to_module_path(file_system.to_relative(path))
+    return from_module_path(object_path)
 
 
 def skeleton_from_name(name: str) -> ModuleType:
@@ -25,18 +24,17 @@ def skeleton_from_name(name: str) -> ModuleType:
     return importlib.util.module_from_spec(spec)
 
 
-def search(object_path: catalog.ObjectPath,
+def search(object_path: ObjectPathType,
            *,
-           modules: Dict[str, ModuleType]) -> Any:
-    object_ = modules.get(str(object_path), None)
-    if object_ is not None:
-        return object_
+           modules: Dict[catalog.ModulePath, ModuleType]) -> Any:
+    if isinstance(object_path, catalog.ModulePath):
+        return modules[object_path]
     module = modules[object_path.module]
     if object_path.object is None:
-        object_ = module
-    elif object_path.type == catalog.PathType.relative:
-        object_ = getattr(module, object_path.object)
-    return object_
+        err_msg = ('Invalid content path: '
+                   'object should not be "None".')
+        raise ValueError(err_msg)
+    return getattr(module, object_path.object)
 
 
 def is_built_in(module: ModuleType) -> bool:
@@ -47,22 +45,3 @@ def is_object_from_module(object_: Any,
                           *,
                           module: ModuleType) -> bool:
     return inspect.getmodule(object_) is module
-
-
-def full_name_valid(full_name: str,
-                    *,
-                    sep: str = catalog.SEPARATOR) -> bool:
-    first_sub_module_name, *rest_sub_modules_names = iter(full_name.split(sep))
-    add_sep_prefix = partial(operator.add, sep)
-    sub_modules_names = ([first_sub_module_name]
-                         + list(map(add_sep_prefix, rest_sub_modules_names)))
-    modules_paths = strings.iterative_join('', *sub_modules_names)
-    for sub_module_name, module_path in zip(sub_modules_names,
-                                            modules_paths):
-        full_name = importlib.util.resolve_name(name=sub_module_name,
-                                                package=module_path)
-        try:
-            from_name(full_name)
-        except ImportError:
-            return False
-    return True

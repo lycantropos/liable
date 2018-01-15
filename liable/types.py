@@ -1,6 +1,6 @@
 from typing import (Any,
                     Dict)
 
-from . import catalog
+from .catalog import ObjectPathType
 
-NamespaceType = Dict[catalog.ObjectPath, Any]
+NamespaceType = Dict[ObjectPathType, Any]
