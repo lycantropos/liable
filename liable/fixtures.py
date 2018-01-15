@@ -53,9 +53,8 @@ def from_parameters(parameters: Iterable[inspect.Parameter],
 def from_parameter(parameter: inspect.Parameter,
                    *,
                    namespace: NamespaceType) -> str:
-    name = parameter.name
-    strategy_name = strategies.to_strategy_name(name)
+    strategy_name = strategies.to_strategy_name(parameter)
     annotation = parameter.annotation
-    return TEMPLATE.format(name=name,
+    return TEMPLATE.format(name=parameter.name,
                            annotation=annotation.to_string(namespace),
                            strategy=strategy_name)

@@ -38,11 +38,14 @@ def wrap_with_quotes(string: str) -> Any:
     return quote_character + string + quote_character
 
 
-def to_plurals(string: str) -> str:
-    case = guess_case(string)
+def to_plurals(string: str,
+               *,
+               target_case: Case = None) -> str:
+    if target_case is None:
+        target_case = guess_case(string)
     words = split_words(string)
     pluralized_words = map(to_plural, words)
-    return to_case_converters[case](pluralized_words)
+    return to_case_converters[target_case](pluralized_words)
 
 
 def guess_case(string: str) -> Case:
@@ -75,14 +78,18 @@ def split_camel_case(string: str) -> Iterator[str]:
     for character, next_character in zip_longest(string, string[1:],
                                                  fillvalue=''):
         if character.islower() and next_character.isupper():
-            yield word
+            yield word.lower()
             word = ''
         if character.isupper() and next_character.islower():
-            yield word[:-1]
+            # for names like "HTTPResponse"
+            # which consists of words "HTTP", "Response"
+            previous_word = word[:-1]
+            if previous_word:
+                yield previous_word.lower()
             word = character + next_character
         else:
             word += next_character
-    yield word
+    yield word.lower()
 
 
 def is_camel_case(string: str) -> bool:

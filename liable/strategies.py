@@ -24,6 +24,7 @@ from . import (functions,
                parameters,
                catalog,
                strings)
+from .annotator.detectors import is_generic
 from .types import NamespaceType
 from .utils import (fix_code,
                     merge_mappings)
@@ -34,7 +35,7 @@ def init_module(modules_parameters: Dict[catalog.ModulePath,
     strategies_paths = (
         (catalog.ContentPath(module=catalog.ModulePath(catalog.SEPARATOR
                                                        + str(module_path)),
-                             object=to_strategy_name(parameter.name),
+                             object=to_strategy_name(parameter),
                              type=catalog.PathType.relative)
          for parameter in module_parameters)
         for module_path, module_parameters in modules_parameters.items()
@@ -101,7 +102,7 @@ def module_strategies_definitions(
 def strategy_definition(parameter: inspect.Parameter,
                         *,
                         namespace: NamespaceType) -> str:
-    strategy_name = to_strategy_name(parameter.name)
+    strategy_name = to_strategy_name(parameter)
     template = to_template(parameter.annotation)
     value = template.to_string(namespace)
     return strategy_name + ' = ' + value + '\n'
@@ -185,4 +186,16 @@ def to_template(annotation: annotator.Annotation
     return template
 
 
-to_strategy_name = strings.to_plurals
+def to_strategy_name(parameter: inspect.Parameter) -> str:
+    annotation = parameter.annotation
+    annotation_bases = annotation.bases
+    parameter_full_name = parameter.name
+    try:
+        annotation_base, = annotation_bases
+    except ValueError:
+        pass
+    else:
+        if is_generic(annotation.origin):
+            parameter_full_name += '_' + annotation_base.__name__.lower()
+    return strings.to_plurals(parameter_full_name,
+                              target_case=strings.Case.snake)
