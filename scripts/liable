@@ -14,9 +14,6 @@ from typing import (Any,
                     List)
 
 import click
-from pathspec import (PathSpec,
-                      patterns)
-
 from liable import (modules,
                     namespaces,
                     file_system,
@@ -30,6 +27,8 @@ from liable.utils import (is_python_module,
                           merge_mappings)
 from liable.validators import (validate_paths,
                                validate_modules_paths)
+from pathspec import (PathSpec,
+                      patterns)
 
 __version__ = '0.0.1-alpha'
 
