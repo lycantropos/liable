@@ -2,12 +2,12 @@ import inspect
 import operator
 from collections import defaultdict
 from itertools import (chain,
-                       starmap,
+                       filterfalse,
+                       product,
                        repeat,
-                       product)
+                       starmap)
 from types import FunctionType
-from typing import (Any,
-                    Optional,
+from typing import (Optional,
                     Type,
                     Iterable,
                     Iterator,
@@ -53,6 +53,13 @@ def combine(parameters: Iterable[inspect.Parameter],
                 module_path = path.module
         result[to_top(module_path)].append(parameter)
     return result
+
+
+def from_type_initializer(type_: Type) -> Iterator[inspect.Parameter]:
+    initializer_signature = functions.signature(type_.__init__)
+    # ignoring `self`
+    initializer_parameters = initializer_signature.parameters[1:]
+    yield from filterfalse(is_variadic, initializer_parameters)
 
 
 def from_functions(module_functions: Iterable[FunctionType]
