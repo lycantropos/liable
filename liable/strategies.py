@@ -10,7 +10,7 @@ from fractions import Fraction
 from functools import partial
 from itertools import (chain,
                        starmap)
-from typing import (Any,
+from typing import (Type,
                     Iterable,
                     Iterator,
                     Dict,
@@ -69,7 +69,7 @@ def module_imports(module_parameters: Iterable[inspect.Parameter],
                    namespace: NamespaceType) -> Iterator[str]:
     namespace = merge_mappings(namespace, utilities)
     annotations = map(operator.attrgetter('annotation'), module_parameters)
-    objects = set(dependant_objects(annotations))
+    objects = set(map(dependant_types, annotations))
     object_path_seeker = partial(namespaces.search_path,
                                  namespace=namespace)
     objects_paths = map(object_path_seeker, objects)
@@ -79,15 +79,21 @@ def module_imports(module_parameters: Iterable[inspect.Parameter],
                                            modules_objects_paths))
 
 
-def dependant_objects(annotations: Iterable[annotator.Annotation]
-                      ) -> Iterator[Any]:
-    for annotation in annotations:
-        yield from chain.from_iterable(templates_dependants
-                                       .get(base,
-                                            [strategies.builds, base])
-                                       for base in annotation.bases)
-        if isinstance(annotation, annotator.annotations.Generic):
-            yield from dependant_objects(annotation.arguments)
+def dependant_types(annotation: annotator.Annotation) -> Iterator[Type]:
+    bases = annotation.bases
+    yield from chain.from_iterable(templates_dependants
+                                   .get(base,
+                                        [strategies.builds, base])
+                                   for base in bases)
+    initializers_parameters = chain.from_iterable(
+            map(parameters.from_type_initializer, bases))
+    annotations = map(operator.attrgetter('annotation'),
+                      initializers_parameters)
+    yield from chain.from_iterable(map(dependant_types,
+                                       annotations))
+    if isinstance(annotation, annotator.annotations.Generic):
+        arguments = annotation.arguments
+        yield from chain.from_iterable(map(dependant_types, arguments))
 
 
 def module_strategies_definitions(
