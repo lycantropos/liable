@@ -8,7 +8,7 @@ ENV LANG=en_US.UTF-8
 
 COPY scripts/ scripts/
 COPY tests/ tests/
-COPY README.rst .
+COPY README.md .
 COPY setup.py .
 COPY setup.cfg .
 
