@@ -69,7 +69,7 @@ def module_imports(module_parameters: Iterable[inspect.Parameter],
                    namespace: NamespaceType) -> Iterator[str]:
     namespace = merge_mappings(namespace, utilities)
     annotations = map(operator.attrgetter('annotation'), module_parameters)
-    objects = set(map(dependant_types, annotations))
+    objects = set(chain.from_iterable(map(dependant_types, annotations)))
     object_path_seeker = partial(namespaces.search_path,
                                  namespace=namespace)
     objects_paths = map(object_path_seeker, objects)
