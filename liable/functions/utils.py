@@ -18,7 +18,6 @@ from liable import (annotator,
                     strings)
 from liable.catalog import ObjectPathType
 from liable.types import NamespaceType
-
 from .detectors import (supports_to_string,
                         is_literal)
 
@@ -89,7 +88,14 @@ def walk(function_call: FunctionCall) -> Iterator[Any]:
     yield from chain.from_iterable(map(walk, sub_calls))
 
     plain_arguments = filterfalse(is_function_call, function_call.arguments)
-    yield from plain_arguments
+    yield from filter(None, map(to_value, plain_arguments))
+
+
+def to_value(argument: Argument) -> Any:
+    value = argument.value
+    if is_literal(value):
+        return
+    return value
 
 
 def dependants_paths(functions: Iterable[FunctionType],
