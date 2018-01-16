@@ -90,22 +90,42 @@ def search_name(object_: Any,
 def search_path(object_: Any,
                 *,
                 namespace: NamespaceType) -> ObjectPathType:
-    is_relative = is_object_relative(object_,
-                                     namespace=namespace)
-    if is_relative:
-        object_paths = search_relative_objects(object_,
-                                               namespace=namespace)
-    else:
-        object_paths = chain.from_iterable(
-                search_absolute_objects(object_,
-                                        namespace=from_module(module),
-                                        module_path=module_path)
-                for module_path, module in namespace_modules(namespace))
+    object_paths = search_paths(object_,
+                                namespace=namespace)
     try:
         return next(object_paths)
     except StopIteration as err:
         raise LookupError('Object "{object}" not found in namespace.'
                           .format(object=to_name(object_))) from err
+
+
+def search_paths(object_: Any,
+                 *,
+                 namespace: NamespaceType) -> Iterator[ObjectPathType]:
+    is_relative = is_object_relative(object_,
+                                     namespace=namespace)
+    if is_relative:
+        yield from search_relative_objects(object_,
+                                           namespace=namespace)
+    else:
+        yield from search_absolute_paths(object_,
+                                         namespace=namespace)
+
+
+def search_absolute_paths(object_: Any,
+                          *,
+                          namespace: NamespaceType) -> Iterator[Any]:
+    sub_modules_by_paths = dict(namespace_modules(namespace))
+    sub_namespaces = list(map(from_module, sub_modules_by_paths.values()))
+    yield from chain.from_iterable(
+            search_absolute_objects(object_,
+                                    namespace=namespace,
+                                    module_path=module_path)
+            for module_path, namespace in zip(sub_modules_by_paths.keys(),
+                                              sub_namespaces))
+    yield from chain.from_iterable(search_absolute_paths(object_,
+                                                         namespace=namespace)
+                                   for namespace in sub_namespaces)
 
 
 def is_object_relative(object_: Any,
