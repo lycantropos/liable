@@ -155,7 +155,7 @@ templates_dependants = {key: list(functions.walk(value))
 def to_template(annotation: annotator.Annotation
                 ) -> functions.FunctionCall:
     try:
-        cls, = annotation.bases
+        base, = annotation.bases
     except ValueError as err:
         if isinstance(annotation, (annotator.annotations.Union,
                                    annotator.annotations.Optional)):
@@ -164,20 +164,17 @@ def to_template(annotation: annotator.Annotation
                                                annotation.arguments))
         raise err
     try:
-        template = templates[cls]
+        template = templates[base]
     except KeyError:
-        initializer_signature = functions.signature(cls.__init__)
-        # ignoring `self`
-        initializer_parameters = initializer_signature.parameters[1:]
+        initializer_parameters = parameters.from_type_initializer(base)
         arguments = [
             functions.Argument(name=parameter.name,
                                value=to_template(parameter.annotation),
                                kind=inspect._POSITIONAL_OR_KEYWORD)
-            for parameter in initializer_parameters
-            if not parameters.is_variadic(parameter)]
+            for parameter in initializer_parameters]
         template = functions.FunctionCall(strategies.builds,
                                           functions.Argument(name='target',
-                                                             value=cls),
+                                                             value=base),
                                           *arguments)
     else:
         if isinstance(annotation, annotator.annotations.Generic):
