@@ -77,9 +77,7 @@ def search_modules(recursive: bool,
         modules_paths = filterfalse(partial(operator.contains,
                                             ignored_paths),
                                     modules_paths)
-
-    for module_path in modules_paths:
-        click.echo(module_path)
+    click.echo(' '.join(modules_paths))
 
 
 utilities = {
@@ -102,7 +100,7 @@ utilities = {
 @main.command(name='utilities')
 @click.option('--target-directory', '-t',
               type=click.Path(exists=True),
-              default=None,
+              required=True,
               help='Target directory.')
 @click.argument('modules_paths',
                 nargs=-1)
@@ -161,7 +159,7 @@ def generate_utilities(target_directory: Optional[str],
 @main.command(name='tests')
 @click.option('--target-directory', '-t',
               type=click.Path(exists=True),
-              default=None,
+              required=True,
               help='Target directory.')
 @click.option('--spaces-count', '-s',
               type=click.IntRange(1),
