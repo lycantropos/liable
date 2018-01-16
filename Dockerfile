@@ -4,8 +4,6 @@ FROM python:${PYTHON3_VERSION}
 
 WORKDIR /opt/liable
 
-ENV LANG=en_US.UTF-8
-
 COPY scripts/ scripts/
 COPY tests/ tests/
 COPY README.md .
