@@ -16,5 +16,8 @@ services:
       - ./setup.cfg:/opt/liable/setup.cfg
       - ./run-plain-tests.sh:/opt/liable/run-plain-tests.sh
     entrypoint: /opt/liable/run-plain-tests.sh
+    command:
+      - -r
+      - liable
     extra_hosts:
       - "dockerhost:$DOCKERHOST"  # for debugging
