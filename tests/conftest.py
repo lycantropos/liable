@@ -7,12 +7,12 @@ from typing import Iterator
 from _pytest.config import Parser
 from _pytest.python import Metafunc
 
-base_dir = os.path.dirname(__file__)
-sys.path.append(base_dir)
+base_directory_path = os.path.dirname(__file__)
+sys.path.append(base_directory_path)
 
 
-def explore_pytest_plugins(fixtures_package_path: str) -> Iterator[str]:
-    directories = find_directories(fixtures_package_path)
+def explore_pytest_plugins(package_path: str) -> Iterator[str]:
+    directories = find_directories(package_path)
     packages_paths = [
         file_finder.path
         for file_finder, _, is_package in pkgutil.iter_modules(directories)
@@ -47,7 +47,7 @@ def path_to_module_name(path: str) -> str:
     return os.path.normpath(path).replace(os.sep, '.')
 
 
-fixtures_package_path = os.path.join(base_dir, 'fixtures')
+fixtures_package_path = os.path.join(base_directory_path, 'fixtures')
 pytest_plugins = list(explore_pytest_plugins(fixtures_package_path))
 
 
