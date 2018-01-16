@@ -8,8 +8,13 @@ services:
         - PYTHON3_VERSION=${PYTHON3_VERSION}
     image: lycantropos/liable:0.0.1-alpha
     volumes:
-      - .:/opt/liable/
-    entrypoint: python3
-    command: setup.py test
+      - ./liable/:/opt/liable/liable/
+      - ./scripts/:/opt/liable/scripts/
+      - ./tests/:/opt/liable/tests/
+      - ./README.md:/opt/liable/README.md
+      - ./setup.py:/opt/liable/setup.py
+      - ./setup.cfg:/opt/liable/setup.cfg
+      - ./run-plain-tests.sh:/opt/liable/run-plain-tests.sh
+    entrypoint: /opt/liable/run-plain-tests.sh
     extra_hosts:
       - "dockerhost:$DOCKERHOST"  # for debugging
