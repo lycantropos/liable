@@ -1,5 +1,5 @@
 liable
-===========
+======
 
 [![](https://travis-ci.org/lycantropos/liable.svg?branch=master)](https://travis-ci.org/lycantropos/liable "Travis CI")
 [![](https://codecov.io/gh/lycantropos/liable/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/liable "Codecov")
@@ -70,8 +70,12 @@ Running tests
 Plain
 
 ```bash
-python3 setup.py test
+./run-plain-tests.sh -r $PATHS_TO_MODULES
 ```
+where `$PATHS_TO_MODULES` is a list of whitespace-separated paths 
+(absolute or relative) to target `Python` modules (e.g. `liable`).
+Flag `-r` (or its analogue `--recursive`) says to search 
+in given `Python` paths recursively.
 
 Inside `Docker` container
 
@@ -86,7 +90,6 @@ Inside `Docker` container with remote debugger
 ```
 
 Bash script (e.g. can be used in `Git` hooks)
-
 ```bash
 ./run-tests.sh
 ```
