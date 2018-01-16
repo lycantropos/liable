@@ -139,10 +139,6 @@ def generate_utilities(target_directory: Optional[str],
 
     init_module_path = os.path.join(strategies_directory,
                                     file_system.INIT_MODULE_FILE_NAME)
-    # TODO: merge related or duplicated imports
-    with open(init_module_path, mode='a') as init_module_file:
-        init_module_file.write(strategies.init_module(modules_parameters))
-
     for module_path, module_parameters in modules_parameters.items():
         module_full_name = str(module_path)
         write_source(strategies.from_parameters(module_parameters,
@@ -154,6 +150,10 @@ def generate_utilities(target_directory: Optional[str],
                                               namespace=modules_namespace),
                      top_directory=fixtures_directory,
                      module_full_name=module_full_name)
+    # TODO: merge related or duplicated imports
+    with open(init_module_path, mode='a') as init_module_file:
+        init_module_file.write(strategies.init_module(modules_parameters))
+
 
 
 @main.command(name='tests')
