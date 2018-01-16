@@ -108,12 +108,12 @@ def from_function(function: FunctionType,
                            return_type=return_type_str)
 
 
-def normalize_path(module_path: str,
+def normalize_path(path: str,
                    *,
                    source_extension: str = file_system.SOURCE_EXTENSION
                    ) -> str:
-    module_path = file_system.to_relative(module_path)
-    module_full_name = catalog.path_to_module_path(module_path)
+    path = file_system.to_relative(path)
+    module_full_name = catalog.path_to_module_path(path)
     *sup_modules, module_name = str(module_full_name).split(catalog.SEPARATOR)
     module_file_name = 'test_' + module_name + source_extension
     return os.path.join(*sup_modules, module_file_name)

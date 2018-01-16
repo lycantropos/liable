@@ -108,7 +108,7 @@ def to_object_path(statement: ImportType,
         yield from map(catalog.name_to_module_path, names)
 
 
-def import_absolutizer(module_path: str
+def import_absolutizer(path: str
                        ) -> Callable[[ast.ImportFrom], ast.ImportFrom]:
     """Returns operator which makes ``ast.ImportFrom`` statements absolute."""
 
@@ -122,7 +122,7 @@ def import_absolutizer(module_path: str
                               lineno=statement.lineno,
                               col_offset=statement.col_offset)
 
-    directory_path = os.path.normpath(os.path.dirname(module_path))
+    directory_path = os.path.normpath(os.path.dirname(path))
     directory_relative_path = file_system.to_relative(directory_path)
 
     def to_module_full_name(statement: ast.ImportFrom) -> str:
