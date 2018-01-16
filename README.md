@@ -6,8 +6,8 @@ liable
 [![](https://img.shields.io/github/license/lycantropos/liable.svg)](https://github.com/lycantropos/liable/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/liable.svg)](https://badge.fury.io/py/liable "PyPI")
 
-In what follows `python3` is an alias for `python3.5` or any later
-version (`python3.6` and so on).
+In what follows `python3` is an alias for `python3.6` or any later
+version.
 
 Installation
 ------------
