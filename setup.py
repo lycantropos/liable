@@ -14,6 +14,8 @@ install_requires = [
     'autopep8>=1.3.3',
     'inflect>=0.2.5',
     'nltk>=3.2.5',
+    'hypothesis>=3.38.5',
+    'pytest>=3.3.0',
 ]
 tests_require = [
     'pydevd>=1.1.1',  # debugging
