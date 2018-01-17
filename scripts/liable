@@ -155,7 +155,6 @@ def generate_utilities(target_directory: Optional[str],
         init_module_file.write(strategies.init_module(modules_parameters))
 
 
-
 @main.command(name='tests')
 @click.option('--target-directory', '-t',
               type=click.Path(exists=True),
