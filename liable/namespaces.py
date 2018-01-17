@@ -26,8 +26,6 @@ def from_module(module: ModuleType) -> NamespaceType:
 def built_ins(module: ModuleType = builtins) -> NamespaceType:
     raw_namespace = dict(vars(module))
     raw_namespace['...'] = raw_namespace.pop('Ellipsis')
-    assert not any(inspect.ismodule(content)
-                   for content in raw_namespace.values())
     return {catalog.guess_type(content)(module=catalog.BUILT_INS_MODULE_PATH,
                                         object=name,
                                         type=catalog.PathType.inner): content
@@ -169,10 +167,6 @@ def namespace_modules(namespace: NamespaceType
                       ) -> Iterator[Tuple[catalog.ModulePath, ModuleType]]:
     for path, content in namespace.items():
         if inspect.ismodule(content):
-            err_msg = ('Module\'s path in namespace '
-                       'should be instance of "{type}".'
-                       .format(type=catalog.ModulePath.__qualname__))
-            assert isinstance(path, catalog.ModulePath), err_msg
             yield path, content
 
 
