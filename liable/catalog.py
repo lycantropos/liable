@@ -13,7 +13,8 @@ from typing import (Union,
                     Dict,
                     Set)
 
-from . import strings
+from . import (file_system,
+               strings)
 
 SEPARATOR = '.'
 
@@ -96,7 +97,7 @@ def to_module_name(file_name: str) -> Optional[str]:
     module_name = inspect.getmodulename(file_name)
     if module_name is None:
         return file_name
-    if module_name == '__init__':
+    if module_name == file_system.INIT_MODULE_NAME:
         return None
     return module_name
 
