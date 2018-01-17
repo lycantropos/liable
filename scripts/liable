@@ -14,6 +14,9 @@ from typing import (Any,
                     List)
 
 import click
+from pathspec import (PathSpec,
+                      patterns)
+
 from liable import (modules,
                     namespaces,
                     file_system,
@@ -27,8 +30,6 @@ from liable.utils import (is_python_module,
                           merge_mappings)
 from liable.validators import (validate_paths,
                                validate_modules_paths)
-from pathspec import (PathSpec,
-                      patterns)
 
 __version__ = '0.0.1-alpha'
 
@@ -102,9 +103,26 @@ utilities = {
               type=click.Path(exists=True),
               required=True,
               help='Target directory.')
+@click.option('--spaces-count', '-s',
+              type=click.IntRange(1),
+              default=4,
+              help='Number of spaces used for indentation.')
+@click.option('--strategies-module-name',
+              default='strategies',
+              help='Strategies module name.')
+@click.option('--fixtures-module-name',
+              default='fixtures',
+              help='Fixtures module name.')
+@click.option('--tests-module-name',
+              default='tests',
+              help='Tests module name.')
 @click.argument('modules_paths',
                 nargs=-1)
 def generate_utilities(target_directory: Optional[str],
+                       spaces_count: int,
+                       strategies_module_name: str,
+                       fixtures_module_name: str,
+                       tests_module_name: str,
                        modules_paths: List[str]) -> None:
     """Generates strategies & fixtures skeletons."""
     if target_directory is None:
@@ -132,24 +150,27 @@ def generate_utilities(target_directory: Optional[str],
     modules_namespace = merge_mappings(built_ins, modules_namespace)
     modules_parameters = parameters.combine(modules_parameters,
                                             namespace=modules_namespace)
-    strategies_directory = os.path.join(target_directory, 'strategies')
-    fixtures_directory = os.path.join(target_directory, 'fixtures')
+    strategies_directory = os.path.join(target_directory,
+                                        strategies_module_name)
+    fixtures_directory = os.path.join(target_directory, fixtures_module_name)
     file_system.make_packages(strategies_directory)
     file_system.make_packages(fixtures_directory)
-
-    init_module_path = os.path.join(strategies_directory,
-                                    file_system.INIT_MODULE_FILE_NAME)
+    fixtures_factory = partial(fixtures.from_parameters,
+                               spaces_count=spaces_count,
+                               tests_module_name=tests_module_name,
+                               strategies_module_name=strategies_module_name)
     for module_path, module_parameters in modules_parameters.items():
         module_full_name = str(module_path)
         write_source(strategies.from_parameters(module_parameters,
                                                 namespace=modules_namespace),
                      top_directory=strategies_directory,
                      module_full_name=module_full_name)
-
-        write_source(fixtures.from_parameters(module_parameters,
-                                              namespace=modules_namespace),
+        write_source(fixtures_factory(module_parameters,
+                                      namespace=modules_namespace),
                      top_directory=fixtures_directory,
                      module_full_name=module_full_name)
+    init_module_path = os.path.join(strategies_directory,
+                                    file_system.INIT_MODULE_FILE_NAME)
     # TODO: merge related or duplicated imports
     with open(init_module_path, mode='a') as init_module_file:
         init_module_file.write(strategies.init_module(modules_parameters))
