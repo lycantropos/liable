@@ -84,7 +84,7 @@ def path_to_module_path(path: str) -> ModulePath:
 
 def name_to_module_path(full_name: str) -> ModulePath:
     try:
-        package_name, full_name = full_name.split(SEPARATOR, 1)
+        package_name, full_name = full_name.rsplit(SEPARATOR, 1)
     except ValueError:
         return ModulePath(full_name)
     else:
