@@ -82,8 +82,7 @@ def module_imports(module_parameters: Iterable[inspect.Parameter],
 def dependant_types(annotation: annotator.Annotation) -> Iterator[Type]:
     bases = annotation.bases
     yield from chain.from_iterable(templates_dependants
-                                   .get(base,
-                                        [strategies.builds, base])
+                                   .get(base, [strategies.builds, base])
                                    for base in bases)
     initializers_parameters = chain.from_iterable(
             map(parameters.from_type_initializer, bases))
