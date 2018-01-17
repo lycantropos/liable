@@ -44,14 +44,12 @@ class ModulePath(NamedTuple):
 
 class ContentPath(NamedTuple):
     module: ModulePath
-    object: Optional[str]
+    object: str
     type: PathType
 
     def __str__(self):
         module_full_name = str(self.module)
-        if self.object is None:
-            return module_full_name
-        elif is_built_in(self):
+        if is_built_in(self):
             return self.object
         else:
             return module_full_name + SEPARATOR + self.object
