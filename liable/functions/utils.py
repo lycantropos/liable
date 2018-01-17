@@ -1,5 +1,6 @@
 import inspect
 import operator
+from contextlib import suppress
 from functools import partial
 from itertools import (chain,
                        filterfalse)
@@ -18,6 +19,7 @@ from liable import (annotator,
                     strings)
 from liable.catalog import ObjectPathType
 from liable.types import NamespaceType
+
 from .detectors import (supports_to_string,
                         is_literal)
 
@@ -78,24 +80,33 @@ class FunctionCall:
                         arguments=arguments_str))
 
 
-def walk(function_call: FunctionCall) -> Iterator[Any]:
-    yield function_call.function
-
+def walk(object_: Any) -> Iterator[Any]:
     def is_function_call(object_: Any) -> bool:
         return isinstance(object_, FunctionCall)
 
-    sub_calls = filter(is_function_call, function_call.arguments)
-    yield from chain.from_iterable(map(walk, sub_calls))
+    def walk_argument(argument: Argument) -> Iterator[Any]:
+        value = argument.value
+        if is_literal(value):
+            return
+        elif is_function_call(value):
+            yield from walk_function_call(value)
+        else:
+            yield value
 
-    plain_arguments = filterfalse(is_function_call, function_call.arguments)
-    yield from filter(None, map(to_value, plain_arguments))
+    def walk_function_call(function_call: FunctionCall) -> Iterator[Any]:
+        yield function_call.function
 
+        arguments = function_call.arguments
+        sub_calls = filter(is_function_call, arguments)
+        yield from chain.from_iterable(map(walk_function_call, sub_calls))
+        plain_arguments = filterfalse(is_function_call, arguments)
+        yield from chain.from_iterable(map(walk_argument, plain_arguments))
 
-def to_value(argument: Argument) -> Any:
-    value = argument.value
-    if is_literal(value):
-        return
-    return value
+    walkers = {Argument: walk_argument,
+               FunctionCall: walk_function_call}
+
+    with suppress(KeyError):
+        yield from walkers[type(object_)](object_)
 
 
 def dependants_paths(functions: Iterable[FunctionType],
