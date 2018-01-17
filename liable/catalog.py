@@ -151,3 +151,9 @@ def to_module_path(object_path: ObjectPathType) -> ModulePath:
     if isinstance(object_path, ModulePath):
         return object_path
     return object_path.module
+
+
+def guess_type(object_: Any) -> Type[ObjectPathType]:
+    if inspect.ismodule(object_):
+        return ModulePath
+    return ContentPath
