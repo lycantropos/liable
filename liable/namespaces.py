@@ -115,7 +115,8 @@ def search_paths(object_: Any,
 
 def search_absolute_paths(object_: Any,
                           *,
-                          namespace: NamespaceType) -> Iterator[Any]:
+                          namespace: NamespaceType
+                          ) -> Iterator[ObjectPathType]:
     sub_modules_by_paths = dict(namespace_modules(namespace))
     sub_namespaces = list(map(from_module, sub_modules_by_paths.values()))
     yield from chain.from_iterable(
