@@ -1,5 +1,4 @@
 import ast
-import importlib.util
 import inspect
 import operator
 import os
@@ -69,20 +68,14 @@ def to_object_path(statement: ImportType,
         objects_names = names[:]
 
         module_full_name = statement.module
+        module_path = catalog.name_to_module_path(module_full_name)
+        module = modules.from_module_path(module_path)
 
         def is_module(object_name: str) -> bool:
-            try:
-                importlib.import_module(name=catalog.SEPARATOR + object_name,
-                                        package=module_full_name)
-            except ImportError:
-                return False
-            else:
-                return True
-
-        module_path = catalog.name_to_module_path(module_full_name)
+            content = getattr(module, object_name)
+            return inspect.ismodule(content)
 
         if all_objects_wildcard in objects_names:
-            module = modules.from_module_path(module_path)
             objects_names.remove(all_objects_wildcard)
             try:
                 imported_objects_names = module.__all__
@@ -91,7 +84,6 @@ def to_object_path(statement: ImportType,
             objects_names.extend(imported_objects_names)
 
         modules_paths = repeat(module_path)
-
         sub_modules_names = filter(is_module, objects_names)
         module_path_factory = partial(catalog.ModulePath,
                                       type=catalog.PathType.relative)
