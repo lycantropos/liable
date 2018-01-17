@@ -10,8 +10,12 @@ from .catalog import ObjectPathType
 
 
 def from_module_path(module_path: catalog.ModulePath) -> ModuleType:
-    full_name = str(module_path)
-    return importlib.import_module(full_name)
+    if module_path.type == catalog.PathType.relative:
+        sup_module_full_name = str(module_path.module)
+        sup_module = importlib.import_module(sup_module_full_name)
+        return getattr(sup_module, module_path.object)
+    module_full_name = str(module_path)
+    return importlib.import_module(module_full_name)
 
 
 def from_path(path: str) -> ModuleType:
