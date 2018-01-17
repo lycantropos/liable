@@ -125,10 +125,6 @@ def generate_utilities(target_directory: Optional[str],
                        tests_module_name: str,
                        modules_paths: List[str]) -> None:
     """Generates strategies & fixtures skeletons."""
-    if target_directory is None:
-        err_msg = 'No target directory specified.'
-        raise click.BadParameter(err_msg)
-
     if not modules_paths:
         err_msg = 'No paths specified.'
         raise click.BadParameter(err_msg)
@@ -191,10 +187,6 @@ def generate_tests(target_directory: Optional[str],
                    spaces_count: int,
                    modules_paths: List[str]) -> None:
     """Generates test cases skeletons."""
-    if target_directory is None:
-        err_msg = 'No target directory specified.'
-        raise click.BadParameter(err_msg)
-
     if not modules_paths:
         err_msg = 'No paths specified.'
         raise click.BadParameter(err_msg)
