@@ -8,7 +8,8 @@ from typing import (Iterable,
 from . import strings
 
 SOURCE_EXTENSION = SOURCE_SUFFIXES[0]
-INIT_MODULE_FILE_NAME = '__init__' + SOURCE_EXTENSION
+INIT_MODULE_NAME = '__init__'
+INIT_MODULE_FILE_NAME = INIT_MODULE_NAME + SOURCE_EXTENSION
 
 
 def find_files(path: str,
