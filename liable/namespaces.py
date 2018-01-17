@@ -28,9 +28,9 @@ def built_ins(module: ModuleType = builtins) -> NamespaceType:
     raw_namespace['...'] = raw_namespace.pop('Ellipsis')
     assert not any(inspect.ismodule(content)
                    for content in raw_namespace.values())
-    return {catalog.ContentPath(module=catalog.BUILT_INS_MODULE_PATH,
-                                object=name,
-                                type=catalog.PathType.inner): content
+    return {catalog.guess_type(content)(module=catalog.BUILT_INS_MODULE_PATH,
+                                        object=name,
+                                        type=catalog.PathType.inner): content
             for name, content in raw_namespace.items()}
 
 
@@ -66,9 +66,10 @@ def load_dependent_objects(objects_paths: Iterable[ObjectPathType]
 def inner_objects(module: ModuleType) -> NamespaceType:
     module_full_name = module.__name__
     module_path = catalog.name_to_module_path(module_full_name)
-    return {catalog.ContentPath(module=module_path,
-                                object=object_name,
-                                type=catalog.PathType.inner): content
+
+    return {catalog.guess_type(content)(module=module_path,
+                                        object=object_name,
+                                        type=catalog.PathType.inner): content
             for object_name, content in vars(module).items()
             if modules.is_object_from_module(content,
                                              module=module)}
@@ -158,14 +159,9 @@ def search_absolute_objects(object_: Any,
                             ) -> ObjectPathType:
     for path, content in namespace.items():
         if content is object_:
-            if inspect.ismodule(content):
-                yield catalog.ModulePath(module=module_path,
-                                         object=path.object,
-                                         type=catalog.PathType.absolute)
-            else:
-                yield catalog.ContentPath(module=module_path,
-                                          object=path.object,
-                                          type=catalog.PathType.absolute)
+            yield catalog.guess_type(content)(module=module_path,
+                                              object=path.object,
+                                              type=catalog.PathType.absolute)
 
 
 def namespace_modules(namespace: NamespaceType
