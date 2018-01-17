@@ -19,11 +19,6 @@ def from_path(path: str) -> ModuleType:
     return from_module_path(object_path)
 
 
-def skeleton_from_name(name: str) -> ModuleType:
-    spec = importlib.util.find_spec(name)
-    return importlib.util.module_from_spec(spec)
-
-
 def search(object_path: ObjectPathType,
            *,
            modules: Dict[catalog.ModulePath, ModuleType]) -> Any:
