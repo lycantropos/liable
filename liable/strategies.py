@@ -1,6 +1,7 @@
 import collections
 import inspect
 import operator
+from contextlib import suppress
 from datetime import (time,
                       timedelta,
                       date,
@@ -10,10 +11,12 @@ from fractions import Fraction
 from functools import partial
 from itertools import (chain,
                        starmap)
-from typing import (Type,
+from typing import (Any,
+                    Type,
                     Iterable,
                     Iterator,
                     Dict,
+                    Tuple,
                     List)
 
 from hypothesis import strategies
@@ -154,6 +157,58 @@ templates = {
     date: functions.FunctionCall(strategies.dates),
     datetime: functions.FunctionCall(strategies.datetimes),
 }
+
+
+def combine(*objects: Any,
+            module_path: catalog.ModulePath
+            ) -> Iterable[Tuple[catalog.ContentPath, Any]]:
+    for object_ in objects:
+        content_path = catalog.ContentPath(module=module_path,
+                                           object=object_.__name__,
+                                           type=catalog.PathType.absolute)
+        yield content_path, object_
+
+
+with suppress(ImportError):
+    from hypothesis.extra import numpy
+    import numpy as np
+
+    dtype = functions.Argument(name='dtype',
+                               value=object,
+                               kind=inspect._POSITIONAL_OR_KEYWORD)
+    shape = functions.Argument(name='shape',
+                               value=0,
+                               kind=inspect._POSITIONAL_OR_KEYWORD)
+    templates[np.ndarray] = functions.FunctionCall(numpy.arrays,
+                                                   dtype,
+                                                   shape)
+    numpy_module_path = name_to_module_path(numpy.__name__)
+    utilities.update(dict(combine(numpy.arrays,
+                                  module_path=numpy_module_path)))
+
+with suppress(ImportError):
+    from hypothesis.extra import pandas
+    import pandas as pd
+
+    names_or_number = functions.Argument(name='names_or_number',
+                                         value=1,
+                                         kind=inspect._POSITIONAL_OR_KEYWORD)
+    elements = functions.Argument(name='elements',
+                                  value=templates[object],
+                                  kind=inspect._POSITIONAL_OR_KEYWORD)
+    columns = functions.Argument(name='columns',
+                                 value=functions.FunctionCall(pandas.columns,
+                                                              names_or_number,
+                                                              elements))
+    templates[pd.Series] = functions.FunctionCall(pandas.series,
+                                                  elements)
+    templates[pd.DataFrame] = functions.FunctionCall(pandas.data_frames,
+                                                     columns)
+    pandas_module_path = name_to_module_path(pandas.__name__)
+    utilities.update(dict(combine(pandas.columns,
+                                  pandas.series,
+                                  pandas.data_frames,
+                                  module_path=pandas_module_path)))
 
 templates_dependants = {key: list(functions.walk(value))
                         for key, value in templates.items()}
