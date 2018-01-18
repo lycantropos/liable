@@ -71,7 +71,7 @@ def to_object_path(statement: ImportType,
         module_path = catalog.name_to_module_path(module_full_name)
         module = modules.from_module_path(module_path)
 
-        def is_module(object_name: str) -> bool:
+        def is_sub_module_name(object_name: str) -> bool:
             content = getattr(module, object_name)
             return inspect.ismodule(content)
 
@@ -84,13 +84,13 @@ def to_object_path(statement: ImportType,
             objects_names.extend(imported_objects_names)
 
         modules_paths = repeat(module_path)
-        sub_modules_names = filter(is_module, objects_names)
+        sub_modules_names = filter(is_sub_module_name, objects_names)
         module_path_factory = partial(catalog.ModulePath,
                                       type=catalog.PathType.relative)
         yield from starmap(module_path_factory,
                            zip(modules_paths, sub_modules_names))
 
-        contents_names = filterfalse(is_module, objects_names)
+        contents_names = filterfalse(is_sub_module_name, objects_names)
         content_path_factory = partial(catalog.ContentPath,
                                        type=catalog.PathType.relative)
         yield from starmap(content_path_factory,
