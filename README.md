@@ -2,7 +2,6 @@ liable
 ======
 
 [![](https://travis-ci.org/lycantropos/liable.svg?branch=master)](https://travis-ci.org/lycantropos/liable "Travis CI")
-[![](https://codecov.io/gh/lycantropos/liable/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/liable "Codecov")
 [![](https://img.shields.io/github/license/lycantropos/liable.svg)](https://github.com/lycantropos/liable/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/liable.svg)](https://badge.fury.io/py/liable "PyPI")
 
