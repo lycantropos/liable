@@ -58,10 +58,12 @@ def from_parameters(module_parameters: Iterable[inspect.Parameter],
     return fix_code(''.join(code_blocks))
 
 
-utilities = {
-    catalog.ModulePath(module=catalog.ModulePath(strategies.__package__),
-                       object='strategies',
-                       type=catalog.PathType.relative): strategies}
+def name_to_module_path(full_name: str) -> catalog.ModulePath:
+    return (catalog.name_to_module_path(full_name)
+            ._replace(type=catalog.PathType.relative))
+
+
+utilities = {name_to_module_path(strategies.__name__): strategies}
 
 
 def module_imports(module_parameters: Iterable[inspect.Parameter],
