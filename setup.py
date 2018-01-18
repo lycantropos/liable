@@ -27,7 +27,7 @@ tests_require = [
 setup(name='liable',
       packages=find_packages(exclude=('tests',)),
       scripts=[os.path.join('scripts', 'liable')],
-      version='0.0.1-alpha',
+      version='0.0.1',
       description='Auto-tests generator.',
       long_description=open('README.md').read(),
       author='Azat Ibrakov',
