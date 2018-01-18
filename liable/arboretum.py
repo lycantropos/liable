@@ -52,10 +52,10 @@ def to_source(module: ModuleType,
         raise err
 
 
-def to_object_path(statement: ImportType,
-                   *,
-                   all_objects_wildcard: str = ALL_OBJECTS_WILDCARD
-                   ) -> Iterator[ObjectPathType]:
+def to_objects_paths(statement: ImportType,
+                     *,
+                     all_objects_wildcard: str = ALL_OBJECTS_WILDCARD
+                     ) -> Iterator[ObjectPathType]:
     name = operator.attrgetter('name')
     names = list(map(name, statement.names))
     objects_are_relative = isinstance(statement, ast.ImportFrom)
