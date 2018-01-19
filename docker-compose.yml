@@ -11,7 +11,7 @@ services:
       - ./liable/:/opt/liable/liable/
       - ./scripts/:/opt/liable/scripts/
       - ./tests/:/opt/liable/tests/
-      - ./README.md:/opt/liable/README.md
+      - ./README.rst:/opt/liable/README.rst
       - ./setup.py:/opt/liable/setup.py
       - ./setup.cfg:/opt/liable/setup.cfg
       - ./run-plain-tests.sh:/opt/liable/run-plain-tests.sh

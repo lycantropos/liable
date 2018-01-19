@@ -6,7 +6,7 @@ WORKDIR /opt/liable
 
 COPY scripts/ scripts/
 COPY tests/ tests/
-COPY README.md .
+COPY README.rst .
 COPY setup.py .
 COPY setup.cfg .
 
