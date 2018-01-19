@@ -51,10 +51,7 @@ class ContentPath(NamedTuple):
 
     def __str__(self):
         module_full_name = str(self.module)
-        if is_built_in(self):
-            return self.object
-        else:
-            return module_full_name + SEPARATOR + self.object
+        return module_full_name + SEPARATOR + self.object
 
 
 BUILT_INS_MODULE_PATH = ModulePath(builtins.__name__)
