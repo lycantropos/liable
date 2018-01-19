@@ -1,4 +1,5 @@
 import inspect
+from functools import partial
 from itertools import (filterfalse,
                        chain)
 from typing import (TypingMeta,
@@ -74,15 +75,12 @@ def to_annotation(object_: Any) -> Annotation:
 
 def walk(annotation: Annotation,
          *,
-         namespace: NamespaceType) -> Iterator[Any]:
+         namespace: NamespaceType) -> Iterator[Union[Type, TypingMeta]]:
     origin = annotation.origin
     if origin in namespace.values():
         yield origin
         return
-    yield from walk_plain(annotation)
 
-
-def walk_plain(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
     if not isinstance(annotation, Annotation):
         err_msg = ('"{cls}" is not an annotation class.'
                    .format(cls=to_name(annotation.__class__)))
@@ -92,18 +90,21 @@ def walk_plain(annotation: Annotation) -> Iterator[Union[Type, TypingMeta]]:
                                annotations.PlainAnnotation,
                                annotations.Any,
                                annotations.PlainGeneric)):
-        yield annotation.origin
+        yield origin
         yield from annotation.bases
     elif isinstance(annotation, (annotations.Union, annotations.Optional)):
-        yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk_plain, annotation.arguments))
+        yield origin.__origin__
+        walker = partial(walk, namespace=namespace)
+        yield from chain.from_iterable(map(walker, annotation.arguments))
     elif isinstance(annotation, annotations.Generic):
-        yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk_plain, annotation.arguments))
+        yield origin.__origin__
+        walker = partial(walk, namespace=namespace)
+        yield from chain.from_iterable(map(walker, annotation.arguments))
     elif isinstance(annotation, annotations.Callable):
-        yield annotation.origin.__origin__
-        yield from chain.from_iterable(map(walk_plain, annotation.parameters))
-        yield from walk_plain(annotation.return_type)
+        yield origin.__origin__
+        walker = partial(walk, namespace=namespace)
+        yield from chain.from_iterable(map(walker, annotation.parameters))
+        yield from walker(annotation.return_type)
     else:
         err_msg = ('Do not know how to walk through '
                    '"{cls}" annotation class '
