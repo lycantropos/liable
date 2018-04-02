@@ -64,7 +64,7 @@ def from_type_initializer(type_: Type) -> Iterator[inspect.Parameter]:
 
 def from_functions(module_functions: Iterable[FunctionType]
                    ) -> Iterator[inspect.Parameter]:
-    signatures = list(map(functions.signature, module_functions))
+    signatures = map(functions.signature, module_functions)
     parameters = chain.from_iterable(map(operator.attrgetter('parameters'),
                                          signatures))
     result = {}
