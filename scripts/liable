@@ -116,6 +116,10 @@ utilities = {
 @click.option('--tests-module-name',
               default='tests',
               help='Tests module name.')
+@click.option('--overwrite',
+              is_flag=True,
+              help='Overwrites source file '
+                   'if it\'s already exists.')
 @click.argument('modules_paths',
                 nargs=-1)
 def generate_utilities(target_directory: Optional[str],
@@ -123,6 +127,7 @@ def generate_utilities(target_directory: Optional[str],
                        strategies_module_name: str,
                        fixtures_module_name: str,
                        tests_module_name: str,
+                       overwrite: bool,
                        modules_paths: List[str]) -> None:
     """Generates strategies & fixtures skeletons."""
     if not modules_paths:
@@ -160,11 +165,13 @@ def generate_utilities(target_directory: Optional[str],
         write_source(strategies.from_parameters(module_parameters,
                                                 namespace=modules_namespace),
                      top_directory=strategies_directory,
-                     module_full_name=module_full_name)
+                     module_full_name=module_full_name,
+                     overwrite=overwrite)
         write_source(fixtures_factory(module_parameters,
                                       namespace=modules_namespace),
                      top_directory=fixtures_directory,
-                     module_full_name=module_full_name)
+                     module_full_name=module_full_name,
+                     overwrite=overwrite)
     init_module_path = os.path.join(strategies_directory,
                                     file_system.INIT_MODULE_FILE_NAME)
     # TODO: merge related or duplicated imports
@@ -181,10 +188,15 @@ def generate_utilities(target_directory: Optional[str],
               type=click.IntRange(1),
               default=4,
               help='Number of spaces used for indentation.')
+@click.option('--overwrite',
+              is_flag=True,
+              help='Overwrites source file '
+                   'if it\'s already exists.')
 @click.argument('modules_paths',
                 nargs=-1)
 def generate_tests(target_directory: Optional[str],
                    spaces_count: int,
+                   overwrite: bool,
                    modules_paths: List[str]) -> None:
     """Generates test cases skeletons."""
     if not modules_paths:
@@ -218,7 +230,8 @@ def generate_tests(target_directory: Optional[str],
             module_full_name = str(catalog.path_to_module_path(path))
             write_source(source,
                          top_directory=target_directory,
-                         module_full_name=module_full_name)
+                         module_full_name=module_full_name,
+                         overwrite=overwrite)
 
 
 def modules_paths_to_namespaces(modules_paths: Iterable[str]
@@ -233,8 +246,8 @@ def write_source(source: str,
                  *,
                  top_directory: str,
                  module_full_name: str,
-                 source_extension: str = file_system.SOURCE_EXTENSION
-                 ) -> None:
+                 source_extension: str = file_system.SOURCE_EXTENSION,
+                 overwrite: bool) -> None:
     *sub_directories, module_name = module_full_name.split(catalog.SEPARATOR)
     file_system.make_packages(top_directory, *sub_directories)
     module_directory = os.path.join(top_directory,
@@ -243,7 +256,9 @@ def write_source(source: str,
                 exist_ok=True)
     module_path = os.path.join(module_directory,
                                module_name + source_extension)
-    with open(module_path, mode='w') as module_file:
+    mode = 'w' if overwrite else 'a'
+    with open(module_path,
+              mode=mode) as module_file:
         module_file.write(source)
 
 
