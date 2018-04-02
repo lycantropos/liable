@@ -3,7 +3,7 @@ import os
 from setuptools import (setup,
                         find_packages)
 
-project_base_url = 'https://github.com/lycantropos/liable/'
+project_base_url = 'https://github.com/lycantropos/liable.py/'
 
 setup_requires = [
     'pytest-runner>=3.0'
@@ -26,7 +26,6 @@ tests_require = [
 
 setup(name='liable',
       packages=find_packages(exclude=('tests',)),
-      scripts=[os.path.join('scripts', 'liable')],
       version='0.0.1',
       description='Auto-tests generator.',
       long_description=open('README.rst').read(),
@@ -36,4 +35,5 @@ setup(name='liable',
       download_url=project_base_url + 'archive/master.zip',
       setup_requires=setup_requires,
       install_requires=install_requires,
-      tests_require=tests_require)
+      tests_require=tests_require,
+      entry_points={'console_scripts': ['liable = liable.liable:main']})

@@ -4,7 +4,7 @@ FROM python:${PYTHON3_VERSION}
 
 WORKDIR /opt/liable
 
-COPY scripts/ scripts/
+COPY liable/ liable/
 COPY tests/ tests/
 COPY README.rst .
 COPY setup.py .

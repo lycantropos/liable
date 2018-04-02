@@ -9,7 +9,6 @@ services:
     image: lycantropos/liable:0.0.1
     volumes:
       - ./liable/:/opt/liable/liable/
-      - ./scripts/:/opt/liable/scripts/
       - ./tests/:/opt/liable/tests/
       - ./README.rst:/opt/liable/README.rst
       - ./setup.py:/opt/liable/setup.py
