@@ -19,7 +19,6 @@ from liable import (annotator,
                     strings)
 from liable.catalog import ObjectPathType
 from liable.types import NamespaceType
-
 from .detectors import (supports_to_string,
                         is_literal)
 
