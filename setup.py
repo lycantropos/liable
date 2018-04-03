@@ -1,7 +1,7 @@
 from setuptools import (setup,
                         find_packages)
 
-project_base_url = 'https://github.com/lycantropos/liable.py/'
+project_base_url = 'https://github.com/lycantropos/liable/'
 
 setup_requires = [
     'pytest-runner>=3.0'
