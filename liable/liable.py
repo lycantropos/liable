@@ -31,7 +31,7 @@ from liable.utils import (is_python_module,
 from liable.validators import (validate_paths,
                                validate_modules_paths)
 
-__version__ = '0.0.2'
+__version__ = '0.0.3-alpha'
 
 
 @click.group()
