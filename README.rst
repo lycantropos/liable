@@ -2,13 +2,13 @@ liable
 ======
 
 .. image:: https://travis-ci.org/lycantropos/liable.svg?branch=master
-   :target: https://travis-ci.org/lycantropos/liable "Travis CI"
+   :target: https://travis-ci.org/lycantropos/liable
 
 .. image:: https://img.shields.io/github/license/lycantropos/liable.svg
-   :target: https://github.com/lycantropos/liable/blob/master/LICENSE "License"
+   :target: https://github.com/lycantropos/liable/blob/master/LICENSE
 
 .. image:: https://badge.fury.io/py/liable.svg
-   :target: https://badge.fury.io/py/liable "PyPI"
+   :target: https://badge.fury.io/py/liable
 
 In what follows ``python3`` is an alias for ``python3.6`` or any later
 version.
