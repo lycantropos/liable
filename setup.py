@@ -24,7 +24,7 @@ tests_require = [
 
 setup(name='liable',
       packages=find_packages(exclude=('tests',)),
-      version='0.0.3-alpha',
+      version='0.0.3',
       description='Auto-tests generator.',
       long_description=open('README.rst').read(),
       author='Azat Ibrakov',
